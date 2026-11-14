@@ -1,99 +1,111 @@
 # NoSeMePasa · Agenda de actividades
 
-**Autor:** Oscar Norvey Doncel López
-**Curso:** Desarrollo Web · Instituto Técnico Cofrem (ITC)
-**Entregables:** Tarea 9 · Aplicación Web Integrada (v1.0.0) y Tarea 10 · Publicación Web en GitHub Pages (v1.1.0 a v1.3.0)
+**Estudiante:** Oscar Norvey Doncel López · **Programa:** Desarrollo de Software · Instituto Técnico Cofrem (ITC)
+**Entrega:** Evaluación final · Proyecto integrador de sitio web (versión 1.4.0)
+
+## Descripción
+NoSeMePasa es un sitio web de tres páginas para organizar las actividades académicas (ITC, UCC, CUN), laborales y personales con fecha y hora de vencimiento. Cada actividad muestra cuánto tiempo falta y su estado (pendiente, vence en 24 h, vencida o completada), y el inicio resume el avance con contadores y una gráfica. Todo funciona con HTML, CSS y JavaScript puros, y los datos se guardan en el navegador con `localStorage`.
 
 ## Enlace público
 🔗 **https://oscardoncel.github.io/NoSeMePasaWeb/**
-
 Código: https://github.com/OscarDoncel/NoSeMePasaWeb
-**Idea elegida:** Agenda de tareas (nivel básico) con las ampliaciones: modo oscuro con preferencia guardada, exportar a CSV, buscador con filtros combinados y gráfica simple en SVG.
+
+## Cómo ejecutarlo en local (Live Server)
+Los módulos de JavaScript (`import`/`export`) **solo funcionan con un servidor local**, por eso no basta con abrir el archivo con doble clic:
+1. Descomprime el ZIP y abre la carpeta en VS Code.
+2. Instala la extensión **Live Server** (si no la tienes).
+3. Clic derecho sobre `index.html` → **Open with Live Server**.
 
 ## Las 3 páginas
 | Página | Archivo | Qué contiene |
 |---|---|---|
 | **Inicio** | `index.html` | Presentación, resumen de avance (contadores, barra y gráfica SVG por frente) y las 3 actividades más urgentes |
 | **Actividades** | `actividades.html` | Crear, editar, eliminar y completar actividades; filtros combinados; exportar a CSV |
-| **Mi ficha** | `ficha.html` | Ficha del estudiante con validación y sección «Acerca de NoSeMePasa» (uso, tecnologías, alcance) |
+| **Mi ficha** | `ficha.html` | Ficha del estudiante con validación y sección «Acerca de NoSeMePasa» |
 
-Las tres comparten encabezado con menú (la página actual se marca con `aria-current`), modo oscuro y los datos guardados en `localStorage`.
+Las tres comparten encabezado con menú (la página actual se marca con `aria-current`), modo oscuro y los mismos datos guardados.
 
-## ¿Qué hace?
-Organiza actividades académicas (ITC, UCC, CUN), laborales y personales con **fecha y hora de vencimiento**:
-- Crear, editar, eliminar y marcar actividades como completadas.
-- Estados automáticos: pendiente, vence en 24 h, vencida y completada, con el tiempo restante.
-- Filtros combinados por frente, estado y texto.
-- Resumen de avance: contadores, barra de progreso y gráfica SVG por frente.
-- Ficha personal (nombre, programa, correo, frase) con validación.
-- Los datos quedan guardados en el navegador (`localStorage`).
+## Funciones: completas y pendientes
+| Función | Estado | Detalle |
+|---|---|---|
+| Crear, editar, eliminar y completar actividades | ✅ Completa | Con confirmación accesible al eliminar y aviso de cada acción |
+| Estados automáticos y tiempo restante | ✅ Completa | Se actualiza cada minuto |
+| Filtros combinados (texto + frente + estado) | ✅ Completa | Con mensaje distinto para «no hay nada» y «sin resultados» |
+| Resumen de avance y gráfica por frente | ✅ Completa | La gráfica SVG tiene versión en texto para lectores de pantalla |
+| Ficha del estudiante con validación | ✅ Completa | Nombre obligatorio y correo con formato válido, con mensajes en texto |
+| Datos persistentes (`localStorage`) | ✅ Completa | Se validan al leerlos; si están dañados la app no se rompe |
+| Modo claro / oscuro | ✅ Completa | Recuerda la preferencia y respeta la del sistema |
+| Exportar a CSV | ✅ Completa | Abre bien en Excel (tildes) |
+| Registro e inicio de sesión de usuarios | ⏳ Pendiente | Requiere servidor y base de datos; el sitio es estático |
+| Alertas por correo o notificaciones | ⏳ Pendiente | Requiere servidor; la versión Softr de NoSeMePasa sí las tiene |
+| Sincronizar entre dispositivos | ⏳ Pendiente | `localStorage` guarda solo en el navegador donde se usa |
+| Adjuntar archivos a una actividad | ⏳ Pendiente | Fuera del alcance de un sitio sin servidor |
 
-## Cómo ejecutarlo
-Los módulos de JavaScript (`import`/`export`) **solo funcionan con un servidor local**:
-1. Abre la carpeta en VS Code.
-2. Clic derecho en `index.html` → **Open with Live Server**.
-3. (No abras `index.html` con doble clic: la consola mostraría un error de módulos.)
+## Mapa de módulos (`js/`)
+Cada archivo tiene una sola responsabilidad. Las páginas cargan su script con `<script type="module">`.
+| Archivo | Responsabilidad | Exporta |
+|---|---|---|
+| `datos.js` | Datos iniciales | `FRENTES`, `estudianteBase`, `actividadesBase` |
+| `validar.js` | Reglas para aceptar o rechazar datos | `esFechaValida`, `esHoraValida`, `esCorreoValido`, `faltantesActividad`, `normalizarActividad`, `normalizarFicha` |
+| `storage.js` | Único lugar que toca `localStorage` | `cargar/guardarFicha`, `cargar/guardarActividades`, `cargar/guardarTema` |
+| `tiempo.js` | Fechas y estado de una actividad | `estadoDe`, `textoRestante`, `formatoFecha`, `vencimiento`, `fechaHoy` |
+| `logica.js` | Reglas de negocio sin DOM | `crearActividad`, `filtrarYOrdenar`, `masUrgentes`, `contarPorEstado`, `nuevoId` |
+| `exportar.js` | Convierte las actividades en texto CSV | `generarCSV` |
+| `dom.js` | Utilidades del navegador | `$`, `crear`, `descargarTexto` |
+| `ui.js` | Lo que se ve: tarjeta, lista, diálogo, resumen, formularios, mensajes | `renderActividades`, `renderResumen`, `renderUrgentes`, `confirmarEliminar`, … |
+| `grafica.js` | Gráfica SVG por frente | `renderGrafica` |
+| `tema.js` | Aplica, cambia y recuerda el modo claro/oscuro | `iniciarTema` |
+| `tema-inicial.js` | Aplica el tema antes de pintar (evita el destello claro); no es módulo | — |
+| `inicio.js`, `actividades.js`, `ficha.js` | Conectan cada página con los módulos de arriba (eventos) | — |
 
-## Estructura
+Si mañana los datos fueran a un servidor en vez de `localStorage`, solo habría que cambiar `storage.js`.
+
+## Estructura de carpetas
 ```
-index.html          Página 1 · Inicio
-actividades.html    Página 2 · Actividades
-ficha.html          Página 3 · Mi ficha y acerca del proyecto
-favicon.svg         Ícono del sitio
-assets/             Imagen para compartir el enlace (og-image.jpg) e ícono para iPhone
-css/styles.css      Variables, diseño adaptable, animaciones, modo oscuro, impresión
-js/datos.js         Datos base (estudianteBase, actividadesBase, FRENTES)
-js/validar.js       Reglas para aceptar o descartar datos (fechas reales, horas, frentes)
-js/storage.js       Acceso a localStorage; nunca rompe la app si los datos están dañados
-js/tiempo.js        Fechas y estados de una actividad (vencida, próxima, etc.)
-js/dom.js           Utilidades para buscar y crear elementos con textContent
-js/ui.js            Cambios visibles: tarjeta, lista, diálogo, resumen, gráfica SVG, mensajes
-js/exportar.js      Generación y descarga del CSV
-js/comun.js         Lo que comparten las 3 páginas (modo oscuro)
-js/tema-inicial.js  Aplica el tema antes de pintar (evita el destello claro)
-js/inicio.js        Conexión de la página Inicio
-js/actividades.js   Conexión de la página Actividades: eventos, validación y filtros
-js/ficha.js         Conexión de la página Mi ficha
-tests/              Pruebas unitarias (node --test)
+index.html · actividades.html · ficha.html   Las 3 páginas
+favicon.svg                                  Ícono del sitio
+assets/                                      og-image.jpg (vista previa al compartir) y apple-touch-icon.png
+css/styles.css                               Variables, diseño adaptable, modo oscuro, animaciones, impresión
+js/                                          Módulos (ver mapa)
+tests/                                       Pruebas unitarias (opcional, ver abajo)
+package.json                                 Solo define el comando `npm test`
 ```
 
-## Accesibilidad, SEO y buenas prácticas (Tarea 10)
-Resultado de Lighthouse en cada una de las 3 páginas (móvil, configuración por defecto): **Rendimiento 100 · Accesibilidad 100 · Buenas prácticas 100 · SEO 100**. Además se revisó con axe-core (0 violaciones en modo claro y oscuro) y con prueba de teclado.
-
-| Punto de la lista de revisión | Cómo se cumple |
+## Criterios de la evaluación y dónde se cumplen
+| Criterio | Evidencia en el proyecto |
 |---|---|
-| Sin errores en consola | Verificado en las 3 páginas, también con la política de seguridad (CSP) activa |
-| Rutas relativas | `css/styles.css`, `js/app.js`, `favicon.svg` |
-| Un solo `h1` por página, encabezados en orden, elementos semánticos | `h1` → `h2` por sección → `h3` en la tarjeta; `header`, `nav`, `main`, `section`, `article`, `footer` |
-| Idioma | `<html lang="es">` |
-| Formularios | Todos los campos con `label for`/`id`; errores en texto dentro de `role="status"`, con `aria-invalid` y foco en el campo con error |
-| Contraste ≥ 4.5:1 | Paleta recalculada para modo claro y oscuro; el estado se indica con texto, no solo con color |
-| Teclado y foco | Todo se usa con Tab, Enter y Espacio; `:focus-visible` con contorno; el foco se conserva al marcar o redibujar la lista |
-| «Saltar al contenido» | Primer elemento de la página, lleva a `main` |
-| Movimiento y adaptable | `prefers-reduced-motion`; sin scroll horizontal desde 320 px en las 3 páginas; fuentes en `rem` |
-| JavaScript | Un módulo por responsabilidad; sin `innerHTML` con datos del usuario (todo con `textContent`); errores de `localStorage` capturados y mostrados |
-| Seguridad | CSP en cada página (`script-src 'self'`, sin estilos ni scripts en línea); `textContent` en vez de `innerHTML`; datos guardados validados al leerlos |
-| Diálogo accesible | Confirmación de eliminar con `<dialog>` nativo: atrapa el foco, se cierra con Esc y el foco regresa al botón |
-| Avisos de estado | Cada acción (agregar, completar, eliminar) se anuncia en una región `role="status"` |
-| SEO básico | `title`, `description`, `canonical` y Open Graph propios en cada página, imagen para compartir, datos estructurados JSON-LD, `robots`, `theme-color` |
+| Estructura HTML semántica | `header`, `nav`, `main`, `section`, `article`, `footer`; un `h1` por página y encabezados en orden |
+| Estilos y diseño adaptable | `css/styles.css` con variables, rejilla y `@media`; sin desbordes desde 320 px |
+| Accesibilidad | Contraste ≥ 4.5:1 (tabla abajo), `label` en cada campo, foco visible, «Saltar al contenido», `aria-current`, mensajes en `role="status"`, `<dialog>` nativo |
+| Animación con propósito | Resaltado de la actividad recién agregada o editada, y entrada suave al cambiar de página; ambas se desactivan con `prefers-reduced-motion` |
+| JavaScript modular | 12 módulos de una responsabilidad (mapa arriba), `type="module"` |
+| Validación de formularios | Título, fecha y hora de la actividad; nombre y correo de la ficha; errores en texto con `aria-invalid` y foco en el campo |
+| Persistencia | `localStorage` con `JSON.stringify` / `JSON.parse` y manejo de errores |
+| Sin errores en consola | Verificado en las 3 páginas con la política de seguridad activa |
+| Publicación | GitHub Pages (enlace arriba) |
 
-## Alcance y trabajo futuro
-Es un sitio estático, sin servidor. La versión completa de NoSeMePasa (hecha en Softr) incluye registro de usuarios, alertas por correo y datos por usuario; esas funciones quedan como trabajo futuro (versión móvil y con backend).
+### Contraste (fórmula WCAG; mínimo exigido 4.5:1)
+| Modo claro | Colores | Contraste |
+|---|---|---|
+| Texto principal | `#1c2434` sobre `#f4f6fb` | 14.4:1 |
+| Texto secundario | `#566074` sobre `#ffffff` | 6.3:1 |
+| Botón primario | `#ffffff` sobre `#3b5bdb` | 5.7:1 |
+| Estado completada | `#1b7535` sobre `#ffffff` | 5.8:1 |
+| Estado próxima | `#8f5200` sobre `#ffffff` | 6.2:1 |
+| Estado vencida | `#c0182a` sobre `#ffffff` | 6.2:1 |
+| Etiquetas ITC / UCC / CUN / Trabajo / Personal | blanco sobre cada color | 5.7 / 5.6 / 5.8 / 5.8 / 5.3:1 |
 
-## Pruebas
-Las reglas de fechas, validación, almacenamiento y CSV tienen pruebas unitarias que no necesitan instalar nada (solo Node.js 18 o superior):
-```
-npm test
-```
-Cubren, por ejemplo, el límite exacto de 24 horas, fechas inexistentes como 30 de febrero, `localStorage` dañado o lleno y el escape de comillas en el CSV.
+| Modo oscuro | Colores | Contraste |
+|---|---|---|
+| Texto principal | `#e7ebf5` sobre `#1a2133` | 13.4:1 |
+| Texto secundario | `#aab4cc` sobre `#1a2133` | 7.7:1 |
+| Botón primario | `#0f1420` sobre `#748ffc` | 6.2:1 |
+| Estados completada / próxima / vencida | `#51cf66` / `#ffa94d` / `#ff8787` sobre `#1a2133` | 8.0 / 8.4 / 6.9:1 |
 
-## Cómo publicar (GitHub Pages)
-1. Repositorio público con `index.html` en la raíz.
-2. **Settings → Pages → Deploy from a branch → `main` → `/ (root)` → Save**.
-3. Para actualizar: `git add .`, `git commit`, `git push` y esperar uno o dos minutos.
+Además se comprobó con Lighthouse (Rendimiento, Accesibilidad, Buenas prácticas y SEO en 100 en las 3 páginas) y con axe-core (0 violaciones en modo claro y oscuro). El estado de una actividad siempre se indica también con texto, no solo con color.
 
-## Flujo de trabajo con git
-- `main`: siempre contiene la última versión que funciona (la que se entrega).
-- Cada taller o mejora se trabaja en una rama (`taller-11`, `mejora-alertas`, …) y se une a `main` al terminar.
-- Al cerrar cada taller se crea una etiqueta: `v1.0.0` (Tarea 9), `v1.1.0` (taller 11), etc.
-- Los cambios de cada versión se anotan en [`CHANGELOG.md`](CHANGELOG.md).
+## Pruebas (opcional)
+Con Node.js 18 o superior y sin instalar nada: `npm test`. Son 32 pruebas unitarias de las reglas de fechas, validación, filtros, almacenamiento y CSV. La página no las necesita para funcionar.
+
+## Publicar una actualización (GitHub Pages)
+`git add .` → `git commit -m "mensaje"` → `git push`, y esperar uno o dos minutos. Los cambios de cada versión están en [`CHANGELOG.md`](CHANGELOG.md).

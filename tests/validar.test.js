@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  esFechaValida, esHoraValida, esActividadValida, normalizarActividad, normalizarFicha, nuevoId
+  esFechaValida, esHoraValida, esActividadValida, normalizarActividad, normalizarFicha, esCorreoValido, faltantesActividad
 } from '../js/validar.js';
 
 const buena = { id: 'a1', titulo: 'Parcial', frente: 'UCC', fecha: '2026-11-20', hora: '08:30', notas: 'x', completada: false };
@@ -47,6 +47,16 @@ test('normalizarFicha: ignora campos que no son texto', () => {
   assert.deepEqual(normalizarFicha(null, base), base);
 });
 
-test('nuevoId: textos distintos', () => {
-  assert.notEqual(nuevoId(), nuevoId());
+test('esCorreoValido: acepta formatos normales y rechaza los rotos', () => {
+  assert.equal(esCorreoValido('ana@correo.com'), true);
+  assert.equal(esCorreoValido(' ana@correo.co '), true);
+  for (const malo of ['', 'ana', 'ana@', '@correo.com', 'ana@correo', 'a na@correo.com', null]) {
+    assert.equal(esCorreoValido(malo), false, String(malo));
+  }
+});
+
+test('faltantesActividad: lista lo que falta', () => {
+  assert.deepEqual(faltantesActividad({ titulo: 'x', fecha: '2026-01-01', hora: '10:00' }), []);
+  const f = faltantesActividad({ titulo: '', fecha: '2026-13-01', hora: '25:00' });
+  assert.deepEqual(f.map((x) => x.campo), ['titulo', 'fecha', 'hora']);
 });

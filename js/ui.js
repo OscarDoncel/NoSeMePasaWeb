@@ -1,7 +1,8 @@
 // ui.js · Cambios visibles en la pantalla (sin lógica de datos ni de fechas)
 import { FRENTES } from './datos.js';
 import { $, crear } from './dom.js';
-import { estadoDe, ETIQUETA_ESTADO, textoRestante, formatoFecha, vencimiento, fechaHoy } from './tiempo.js';
+import { estadoDe, ETIQUETA_ESTADO, textoRestante, formatoFecha, fechaHoy } from './tiempo.js';
+import { masUrgentes, contarPorEstado } from './logica.js';
 
 /* ---------- Mensajes ---------- */
 export function mostrarMensaje(texto, tipo = 'ok', selector = '#mensaje') {
@@ -47,9 +48,15 @@ function icono(emoji) {
   return crear('span', { texto: emoji, atributos: { 'aria-hidden': 'true' } });
 }
 
-function crearItem(act, ahora, { lectura = false } = {}) {
+function botonIcono(accion, emoji, etiqueta) {
+  const boton = crear('button', { clase: 'icono', atributos: { type: 'button', 'aria-label': etiqueta }, datos: { accion } });
+  boton.append(icono(emoji));
+  return boton;
+}
+
+function crearItem(act, ahora, { lectura = false, resaltar = false } = {}) {
   const est = estadoDe(act, ahora);
-  const li = crear('li', { clase: `item item--${est}${lectura ? ' item--lectura' : ''}`, datos: { id: act.id, frente: act.frente } });
+  const li = crear('li', { clase: `item item--${est}${lectura ? ' item--lectura' : ''}${resaltar ? ' item--nuevo' : ''}`, datos: { id: act.id, frente: act.frente } });
 
   const check = crear('input', {
     clase: 'item__check',
@@ -72,16 +79,8 @@ function crearItem(act, ahora, { lectura = false } = {}) {
   cuerpo.append(crear('p', { clase: 'item__titulo', texto: act.titulo }), meta);
   if (act.notas) cuerpo.append(crear('p', { clase: 'item__notas', texto: act.notas }));
 
-  const botonEditar = crear('button', {
-    clase: 'icono', atributos: { type: 'button', 'aria-label': `Editar: ${act.titulo}` }, datos: { accion: 'editar' }
-  });
-  botonEditar.append(icono('✏️'));
-  const botonEliminar = crear('button', {
-    clase: 'icono', atributos: { type: 'button', 'aria-label': `Eliminar: ${act.titulo}` }, datos: { accion: 'eliminar' }
-  });
-  botonEliminar.append(icono('🗑️'));
   const acciones = crear('div', { clase: 'item__acciones' });
-  acciones.append(botonEditar, botonEliminar);
+  acciones.append(botonIcono('editar', '✏️', `Editar: ${act.titulo}`), botonIcono('eliminar', '🗑️', `Eliminar: ${act.titulo}`));
 
   if (lectura) li.append(cuerpo);
   else li.append(check, cuerpo, acciones);
@@ -92,15 +91,20 @@ function crearItem(act, ahora, { lectura = false } = {}) {
  * Dibuja la lista. `totalGeneral` es cuántas actividades existen sin filtrar:
  * así el mensaje vacío distingue «no hay nada» de «ningún resultado con estos filtros».
  */
-export function renderActividades(lista, totalGeneral = lista.length) {
+export function renderActividades(lista, totalGeneral = lista.length, resaltarId = null) {
   const ahora = new Date();
-  $('#lista').replaceChildren(...lista.map((a) => crearItem(a, ahora)));
+  $('#lista').replaceChildren(...lista.map((a) => crearItem(a, ahora, { resaltar: a.id === resaltarId })));
   $('#vacio').hidden = lista.length > 0;
   $('#vacio-txt').textContent =
     totalGeneral === 0
       ? 'Aún no tienes actividades. ¡Agrega la primera!'
       : 'Ninguna actividad coincide con los filtros.';
   $('#btn-limpiar').hidden = totalGeneral === 0;
+  // Lleva a la vista la actividad recién agregada o editada (sin animar si la persona lo prefiere así)
+  if (resaltarId) {
+    const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    $(`#lista [data-id="${CSS.escape(resaltarId)}"]`)?.scrollIntoView({ block: 'nearest', behavior: reducido ? 'auto' : 'smooth' });
+  }
 }
 
 export function limpiarFiltros() {
@@ -124,10 +128,7 @@ export function confirmarEliminar(titulo) {
 /** Inicio: las 3 actividades pendientes con vencimiento más cercano (solo lectura). */
 export function renderUrgentes(todas, max = 3) {
   const ahora = new Date();
-  const urgentes = todas
-    .filter((a) => !a.completada)
-    .sort((a, b) => vencimiento(a) - vencimiento(b))
-    .slice(0, max);
+  const urgentes = masUrgentes(todas, max);
   $('#lista-urgente').replaceChildren(...urgentes.map((a) => crearItem(a, ahora, { lectura: true })));
   $('#vacio-urgente').hidden = urgentes.length > 0;
 }
@@ -147,52 +148,18 @@ export function restaurarFoco(guardado) {
   destino?.focus();
 }
 
-/* ---------- Resumen y gráfica ---------- */
+/* ---------- Resumen ---------- */
 export function renderResumen(todas) {
-  const ahora = new Date();
-  const hechas = todas.filter((a) => a.completada).length;
-  const vencidas = todas.filter((a) => estadoDe(a, ahora) === 'vencida').length;
-  const proximas = todas.filter((a) => estadoDe(a, ahora) === 'proxima').length;
-  const pct = todas.length ? Math.round((hechas / todas.length) * 100) : 0;
+  const cuenta = contarPorEstado(todas);
+  const pct = cuenta.total ? Math.round((cuenta.completada / cuenta.total) * 100) : 0;
 
-  $('#r-total').textContent = todas.length;
-  $('#r-hechas').textContent = hechas;
-  $('#r-proximas').textContent = proximas;
-  $('#r-vencidas').textContent = vencidas;
+  $('#r-total').textContent = cuenta.total;
+  $('#r-hechas').textContent = cuenta.completada;
+  $('#r-proximas').textContent = cuenta.proxima;
+  $('#r-vencidas').textContent = cuenta.vencida;
   $('#barra').style.width = `${pct}%`;
   $('#barra-txt').textContent = `${pct} % completado`;
   $('.progreso').setAttribute('aria-valuenow', pct);
-  renderGrafica(todas);
-}
-
-const NS = 'http://www.w3.org/2000/svg';
-function svg(etiqueta, atributos = {}, texto) {
-  const el = document.createElementNS(NS, etiqueta);
-  for (const [k, v] of Object.entries(atributos)) el.setAttribute(k, v);
-  if (texto !== undefined) el.textContent = texto;
-  return el;
-}
-
-function renderGrafica(todas) {
-  const grafica = $('#grafica');
-  const maxTotal = Math.max(1, ...FRENTES.map((f) => todas.filter((a) => a.frente === f).length));
-  const anchoMax = 190;
-  const resumen = [];
-  const partes = FRENTES.flatMap((f, i) => {
-    const total = todas.filter((a) => a.frente === f).length;
-    const hechas = todas.filter((a) => a.frente === f && a.completada).length;
-    const y = 8 + i * 32;
-    resumen.push(`${f}: ${hechas} de ${total}`);
-    return [
-      svg('text', { x: 0, y: y + 16 }, f),
-      svg('rect', { class: 'barra-fondo', x: 62, y, width: anchoMax, height: 22, rx: 5 }),
-      svg('rect', { class: `barra-total f-${f}`, x: 62, y, width: (total / maxTotal) * anchoMax, height: 22, rx: 5 }),
-      svg('rect', { class: `barra-hechas f-${f}`, x: 62, y, width: (hechas / maxTotal) * anchoMax, height: 22, rx: 5 }),
-      svg('text', { x: 62 + anchoMax + 8, y: y + 16 }, `${hechas}/${total}`)
-    ];
-  });
-  grafica.replaceChildren(...partes);
-  grafica.setAttribute('aria-label', `Actividades completadas por frente. ${resumen.join('; ')}.`);
 }
 
 /* ---------- Formulario de actividad ---------- */

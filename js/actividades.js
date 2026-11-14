@@ -1,77 +1,43 @@
-// actividades.js · Página de actividades: crear, editar, filtrar y exportar
+// actividades.js · Página de actividades: conecta el formulario, la lista y los filtros con la lógica
 import { actividadesBase } from './datos.js';
 import { cargarActividades, guardarActividades } from './storage.js';
 import {
   mostrarMensaje, llenarSelectoresFrente, renderActividades, llenarFormActividad,
   limpiarFormActividad, marcarInvalido, foco, restaurarFoco, confirmarEliminar, limpiarFiltros
 } from './ui.js';
-import { esFechaValida, esHoraValida, nuevoId } from './validar.js';
-import { estadoDe, vencimiento } from './tiempo.js';
-import { descargarCSV } from './exportar.js';
-import { iniciarTema } from './comun.js';
-import { $ } from './dom.js';
+import { faltantesActividad } from './validar.js';
+import { crearActividad, filtrarYOrdenar } from './logica.js';
+import { generarCSV } from './exportar.js';
+import { iniciarTema } from './tema.js';
+import { $, descargarTexto } from './dom.js';
 
-/* ---------- Estado ---------- */
 let actividades = cargarActividades(actividadesBase);
 
-/* ---------- Render general ---------- */
-function filtradas() {
-  const texto = $('#buscar').value.trim().toLowerCase();
-  const frente = $('#f-frente').value;
-  const estado = $('#f-estado').value;
-  const ahora = new Date();
-
-  return actividades
-    .filter((a) => frente === 'todos' || a.frente === frente)
-    .filter((a) => !texto || `${a.titulo} ${a.notas || ''}`.toLowerCase().includes(texto))
-    .filter((a) => {
-      const e = estadoDe(a, ahora);
-      if (estado === 'todas') return true;
-      if (estado === 'pendientes') return e === 'pendiente' || e === 'proxima';
-      if (estado === 'proximas') return e === 'proxima';
-      if (estado === 'vencidas') return e === 'vencida';
-      return e === 'completada';
-    })
-    .sort((a, b) => Number(a.completada) - Number(b.completada) || vencimiento(a) - vencimiento(b));
-}
-
-/** Redibuja la lista sin que quien usa teclado pierda el foco. */
-function dibujarLista() {
+/** Redibuja la lista aplicando los filtros, sin que quien usa teclado pierda el foco. */
+function dibujarLista(resaltarId = null) {
   const guardado = foco();
-  renderActividades(filtradas(), actividades.length);
+  const filtros = { texto: $('#buscar').value, frente: $('#f-frente').value, estado: $('#f-estado').value };
+  renderActividades(filtrarYOrdenar(actividades, filtros), actividades.length, resaltarId);
   restaurarFoco(guardado);
 }
 
-function persistir() {
+function persistir(resaltarId = null) {
   if (!guardarActividades(actividades)) {
     mostrarMensaje('No se pudo guardar en este navegador: los cambios se perderán al cerrar.', 'error', '#mensaje-actividad');
   }
-  dibujarLista();
+  dibujarLista(resaltarId);
 }
 
-/* ---------- Actividades: crear / editar ---------- */
+/* ---------- Crear / editar ---------- */
 $('#form-actividad').addEventListener('submit', (evento) => {
   evento.preventDefault();
   const d = new FormData(evento.target);
-  const act = {
-    id: d.get('id') || nuevoId(),
-    titulo: d.get('titulo').trim(),
-    frente: d.get('frente'),
-    fecha: d.get('fecha'),
-    hora: d.get('hora'),
-    notas: d.get('notas').trim(),
-    completada: false
-  };
+  const act = crearActividad(Object.fromEntries(d));
 
-  const reglas = [
-    ['titulo', 'el título', Boolean(act.titulo)],
-    ['fecha', 'una fecha válida', esFechaValida(act.fecha)],
-    ['hora', 'una hora válida', esHoraValida(act.hora)]
-  ];
-  for (const [campo, , ok] of reglas) marcarInvalido(campo, !ok);
-  const faltan = reglas.filter(([, , ok]) => !ok).map(([, texto]) => texto);
+  const faltan = faltantesActividad(act);
+  for (const campo of ['titulo', 'fecha', 'hora']) marcarInvalido(campo, faltan.some((f) => f.campo === campo));
   if (faltan.length) {
-    mostrarMensaje(`Falta completar: ${faltan.join(', ')}.`, 'error', '#mensaje-actividad');
+    mostrarMensaje(`Falta completar: ${faltan.map((f) => f.texto).join(', ')}.`, 'error', '#mensaje-actividad');
     evento.target.querySelector('[aria-invalid="true"]').focus();
     return;
   }
@@ -85,7 +51,7 @@ $('#form-actividad').addEventListener('submit', (evento) => {
     actividades.push(act);
     mostrarMensaje('Actividad agregada.', 'ok', '#mensaje-actividad');
   }
-  persistir();
+  persistir(act.id);
   limpiarFormActividad();
 });
 
@@ -119,21 +85,22 @@ $('#lista').addEventListener('click', (evento) => {
   }
 });
 
+/* ---------- Filtros y exportación ---------- */
 $('#btn-limpiar').addEventListener('click', () => {
   limpiarFiltros();
   dibujarLista();
   $('#buscar').focus();
 });
+['#buscar', '#f-frente', '#f-estado'].forEach((s) => $(s).addEventListener('input', () => dibujarLista()));
 
-/* ---------- Filtros ---------- */
-['#buscar', '#f-frente', '#f-estado'].forEach((s) => $(s).addEventListener('input', dibujarLista));
+$('#btn-csv').addEventListener('click', () => {
+  const dia = new Date().toISOString().slice(0, 10);
+  descargarTexto(`nosemepasa-actividades-${dia}.csv`, generarCSV(actividades), 'text/csv;charset=utf-8');
+});
 
-/* ---------- Exportar CSV ---------- */
-$('#btn-csv').addEventListener('click', () => descargarCSV(actividades));
-
-/* ---------- Inicio ---------- */
+/* ---------- Arranque ---------- */
 iniciarTema();
 llenarSelectoresFrente();
 limpiarFormActividad(); // deja la fecha de hoy por defecto
 dibujarLista();
-setInterval(dibujarLista, 60 * 1000); // actualiza «faltan X h» cada minuto
+setInterval(() => dibujarLista(), 60 * 1000); // actualiza «faltan X h» cada minuto

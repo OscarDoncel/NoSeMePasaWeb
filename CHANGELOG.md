@@ -6,6 +6,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). C
 ### Ideas para el próximo taller
 - (Anota aquí las mejoras que pida el docente)
 
+## [1.4.0] - 2026-11-14 · Evaluación final
+### Agregado
+- Validación del correo en la ficha con mensaje en texto; límites de longitud en nombre y correo.
+- `js/logica.js` (crear, filtrar, ordenar y contar actividades, sin DOM) y `js/grafica.js` (gráfica SVG).
+- Animación con propósito: resaltado de la actividad recién agregada o editada (respeta `prefers-reduced-motion`).
+- Pruebas de `logica.js`, `esCorreoValido` y `faltantesActividad` (32 en total).
+- README con tabla de funciones completas y pendientes, mapa de módulos, criterios de evaluación y tabla de contraste.
+### Cambiado
+- `comun.js` pasa a llamarse `tema.js`; `exportar.js` solo genera el CSV y la descarga vive en `dom.js`.
+- `actividades.js` queda como conexión de eventos; el filtrado salió a `logica.js`.
+- Todos los colores fijos del CSS pasaron a variables.
+
 ## [1.3.0] - 2026-11-14 · Pulido y calidad
 ### Agregado
 - Pruebas unitarias (`npm test`, sin dependencias) para fechas, validación, almacenamiento y CSV.

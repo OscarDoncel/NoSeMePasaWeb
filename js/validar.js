@@ -16,6 +16,12 @@ export function esHoraValida(texto) {
   return typeof texto === 'string' && FORMATO_HORA.test(texto);
 }
 
+const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export function esCorreoValido(texto) {
+  return typeof texto === 'string' && FORMATO_CORREO.test(texto.trim());
+}
+
 export function esActividadValida(a) {
   return (
     typeof a === 'object' && a !== null &&
@@ -50,6 +56,12 @@ export function normalizarFicha(f, respaldo) {
   return salida;
 }
 
-export function nuevoId() {
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+/** Lo que falta o está mal en una actividad del formulario: [{ campo, texto }]. Vacía = todo bien. */
+export function faltantesActividad(a) {
+  const reglas = [
+    ['titulo', 'el título', Boolean(a.titulo)],
+    ['fecha', 'una fecha válida', esFechaValida(a.fecha)],
+    ['hora', 'una hora válida', esHoraValida(a.hora)]
+  ];
+  return reglas.filter(([, , ok]) => !ok).map(([campo, texto]) => ({ campo, texto }));
 }
