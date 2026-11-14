@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NoSeMePasa: agenda de actividades académicas, laborales y personales con fecha y hora de vencimiento.">
+  <title>NoSeMePasa · Agenda de actividades</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="encabezado">
+    <div class="marca">
+      <span class="marca__icono" aria-hidden="true">⏰</span>
+      <div>
+        <h1>NoSeMePasa</h1>
+        <p class="marca__lema">Que ninguna entrega se te pase.</p>
+      </div>
+    </div>
+    <nav aria-label="Secciones">
+      <a href="#resumen">Resumen</a>
+      <a href="#actividades">Actividades</a>
+      <a href="#ficha">Mi ficha</a>
+    </nav>
+    <button id="btn-tema" class="btn btn--ghost" type="button" aria-label="Cambiar entre modo claro y oscuro">🌓</button>
+  </header>
+
+  <main class="contenedor">
+    <section id="resumen" class="seccion" aria-labelledby="t-resumen">
+      <h2 id="t-resumen">Resumen de avance</h2>
+      <div class="resumen">
+        <article class="dato"><span id="r-total" class="dato__num">0</span><span>Total</span></article>
+        <article class="dato dato--ok"><span id="r-hechas" class="dato__num">0</span><span>Completadas</span></article>
+        <article class="dato dato--warn"><span id="r-proximas" class="dato__num">0</span><span>Vencen en 24 h</span></article>
+        <article class="dato dato--mal"><span id="r-vencidas" class="dato__num">0</span><span>Vencidas</span></article>
+      </div>
+      <div class="progreso" role="progressbar" aria-label="Porcentaje completado" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="barra" class="progreso__barra"></div>
+        <span id="barra-txt" class="progreso__txt">0 %</span>
+      </div>
+      <figure class="grafica">
+        <figcaption>Actividades por frente (completadas / total)</figcaption>
+        <svg id="grafica" viewBox="0 0 420 170" role="img" aria-label="Gráfica de actividades por frente"></svg>
+      </figure>
+    </section>
+
+    <section id="nueva" class="seccion" aria-labelledby="t-nueva">
+      <h2 id="t-nueva">Nueva actividad</h2>
+      <form id="form-actividad" novalidate>
+        <input type="hidden" name="id">
+        <div class="campo campo--ancho">
+          <label for="titulo">Título</label>
+          <input id="titulo" name="titulo" type="text" maxlength="80" placeholder="Ej.: Entregar proyecto final de Web" required>
+        </div>
+        <div class="campo">
+          <label for="frente">Frente</label>
+          <select id="frente" name="frente" required></select>
+        </div>
+        <div class="campo">
+          <label for="fecha">Fecha de vencimiento</label>
+          <input id="fecha" name="fecha" type="date" required>
+        </div>
+        <div class="campo">
+          <label for="hora">Hora</label>
+          <input id="hora" name="hora" type="time" value="23:59" required>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="notas">Notas (opcional)</label>
+          <textarea id="notas" name="notas" rows="2" maxlength="200"></textarea>
+        </div>
+        <div class="acciones">
+          <button id="btn-guardar" class="btn" type="submit">Agregar actividad</button>
+          <button id="btn-cancelar" class="btn btn--ghost" type="button" hidden>Cancelar edición</button>
+        </div>
+        <p id="mensaje-actividad" class="mensaje" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="actividades" class="seccion" aria-labelledby="t-lista">
+      <div class="seccion__cab">
+        <h2 id="t-lista">Mis actividades</h2>
+        <button id="btn-csv" class="btn btn--ghost" type="button">Exportar CSV</button>
+      </div>
+      <div class="filtros">
+        <input id="buscar" type="search" placeholder="Buscar por título o nota…" aria-label="Buscar actividades">
+        <select id="f-frente" aria-label="Filtrar por frente"></select>
+        <select id="f-estado" aria-label="Filtrar por estado">
+          <option value="todas">Todos los estados</option>
+          <option value="pendientes">Pendientes</option>
+          <option value="proximas">Vencen en 24 h</option>
+          <option value="vencidas">Vencidas</option>
+          <option value="completadas">Completadas</option>
+        </select>
+      </div>
+      <ul id="lista" class="lista"></ul>
+      <p id="vacio" class="vacio" hidden>No hay actividades que coincidan. ¡Agrega la primera!</p>
+    </section>
+
+    <section id="ficha" class="seccion" aria-labelledby="t-ficha">
+      <h2 id="t-ficha">Mi ficha</h2>
+      <div class="ficha">
+        <article class="tarjeta" aria-live="polite">
+          <h3 id="t-nombre">Tu nombre</h3>
+          <p id="t-programa" class="tarjeta__prog">Programa</p>
+          <p id="t-correo">correo@ejemplo.com</p>
+          <blockquote id="t-frase">Tu frase</blockquote>
+        </article>
+        <form id="form-ficha" novalidate>
+          <div class="campo">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" name="nombre" type="text" required>
+          </div>
+          <div class="campo">
+            <label for="programa">Programa</label>
+            <input id="programa" name="programa" type="text">
+          </div>
+          <div class="campo">
+            <label for="correo">Correo</label>
+            <input id="correo" name="correo" type="email">
+          </div>
+          <div class="campo">
+            <label for="frase">Frase</label>
+            <input id="frase" name="frase" type="text" maxlength="100">
+          </div>
+          <button class="btn" type="submit">Guardar ficha</button>
+          <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p>NoSeMePasa · Proyecto final de Desarrollo Web · ITC (Instituto Técnico Cofrem) · 2026</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
