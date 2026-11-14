@@ -4,12 +4,13 @@ import {
   cargarFicha, guardarFicha, cargarActividades, guardarActividades, cargarTema, guardarTema
 } from './storage.js';
 import {
-  renderTarjeta, llenarFormFicha, mostrarMensaje, llenarSelectoresFrente,
+  renderTarjeta, llenarFormFicha, marcarCampoFicha, mostrarMensaje, llenarSelectoresFrente,
   renderActividades, renderResumen, llenarFormActividad, limpiarFormActividad,
-  marcarInvalido, aplicarTema, estadoDe, vencimiento
+  marcarInvalido, aplicarTema, foco, restaurarFoco
 } from './ui.js';
-
-const $ = (s) => document.querySelector(s);
+import { estadoDe, vencimiento } from './tiempo.js';
+import { descargarCSV } from './exportar.js';
+import { $ } from './dom.js';
 
 /* ---------- Estado ---------- */
 let ficha = cargarFicha(estudianteBase);
@@ -37,14 +38,21 @@ function filtradas() {
     .sort((a, b) => Number(a.completada) - Number(b.completada) || vencimiento(a) - vencimiento(b));
 }
 
-function refrescar() {
+/** Redibuja la lista sin que quien usa teclado pierda el foco. */
+function dibujarLista() {
+  const guardado = foco();
   renderActividades(filtradas());
+  restaurarFoco(guardado);
+}
+
+function refrescar() {
+  dibujarLista();
   renderResumen(actividades);
 }
 
 function persistir() {
   if (!guardarActividades(actividades)) {
-    mostrarMensaje('No se pudo guardar en este navegador.', 'error', '#mensaje-actividad');
+    mostrarMensaje('No se pudo guardar en este navegador: los cambios se perderán al cerrar.', 'error', '#mensaje-actividad');
   }
   refrescar();
 }
@@ -54,8 +62,10 @@ $('#form-ficha').addEventListener('submit', (evento) => {
   evento.preventDefault();
   const datos = new FormData(evento.target);
   const nombre = datos.get('nombre').trim();
+  marcarCampoFicha('nombre', !nombre);
   if (!nombre) {
-    mostrarMensaje('El nombre no puede estar vacío.', 'error');
+    mostrarMensaje('El nombre es obligatorio.', 'error');
+    $('#nombre').focus();
     return;
   }
   ficha = {
@@ -65,8 +75,11 @@ $('#form-ficha').addEventListener('submit', (evento) => {
     correo: datos.get('correo').trim(),
     frase: datos.get('frase').trim()
   };
-  guardarFicha(ficha);
-  renderTarjeta(ficha, 'Ficha guardada ✔');
+  if (guardarFicha(ficha)) renderTarjeta(ficha, 'Ficha guardada.');
+  else {
+    renderTarjeta(ficha);
+    mostrarMensaje('No se pudo guardar la ficha en este navegador.', 'error');
+  }
 });
 
 /* ---------- Actividades: crear / editar ---------- */
@@ -83,14 +96,11 @@ $('#form-actividad').addEventListener('submit', (evento) => {
     completada: false
   };
 
-  const errores = [];
-  const invalidos = { titulo: !act.titulo, fecha: !act.fecha, hora: !act.hora };
-  for (const [campo, malo] of Object.entries(invalidos)) marcarInvalido(campo, malo);
-  if (invalidos.titulo) errores.push('el título');
-  if (invalidos.fecha) errores.push('la fecha');
-  if (invalidos.hora) errores.push('la hora');
-  if (errores.length) {
-    mostrarMensaje(`Falta completar: ${errores.join(', ')}.`, 'error', '#mensaje-actividad');
+  const faltan = [['titulo', 'el título'], ['fecha', 'la fecha'], ['hora', 'la hora']].filter(([campo]) => !act[campo]);
+  for (const campo of ['titulo', 'fecha', 'hora']) marcarInvalido(campo, !act[campo]);
+  if (faltan.length) {
+    mostrarMensaje(`Falta completar: ${faltan.map(([, t]) => t).join(', ')}.`, 'error', '#mensaje-actividad');
+    evento.target.querySelector('[aria-invalid="true"]').focus();
     return;
   }
 
@@ -98,10 +108,10 @@ $('#form-actividad').addEventListener('submit', (evento) => {
   if (idx >= 0) {
     act.completada = actividades[idx].completada;
     actividades[idx] = act;
-    mostrarMensaje('Actividad actualizada ✔', 'ok', '#mensaje-actividad');
+    mostrarMensaje('Actividad actualizada.', 'ok', '#mensaje-actividad');
   } else {
     actividades.push(act);
-    mostrarMensaje('Actividad agregada ✔', 'ok', '#mensaje-actividad');
+    mostrarMensaje('Actividad agregada.', 'ok', '#mensaje-actividad');
   }
   persistir();
   limpiarFormActividad();
@@ -114,42 +124,31 @@ $('#btn-cancelar').addEventListener('click', () => {
 
 /* ---------- Lista: acciones por delegación de eventos ---------- */
 $('#lista').addEventListener('click', (evento) => {
-  const boton = evento.target.closest('[data-accion]');
-  if (!boton) return;
-  const id = boton.closest('.item').dataset.id;
+  const control = evento.target.closest('[data-accion]');
+  if (!control) return;
+  const id = control.closest('.item').dataset.id;
   const act = actividades.find((a) => a.id === id);
   if (!act) return;
 
-  if (boton.dataset.accion === 'alternar') {
-    act.completada = boton.checked;
+  if (control.dataset.accion === 'alternar') {
+    act.completada = control.checked;
     persistir();
-  } else if (boton.dataset.accion === 'editar') {
+  } else if (control.dataset.accion === 'editar') {
     llenarFormActividad(act);
-  } else if (boton.dataset.accion === 'eliminar') {
+  } else if (control.dataset.accion === 'eliminar') {
     if (confirm(`¿Eliminar «${act.titulo}»?`)) {
       actividades = actividades.filter((a) => a.id !== id);
       persistir();
+      $('#t-lista').focus();
     }
   }
 });
 
 /* ---------- Filtros ---------- */
-['#buscar', '#f-frente', '#f-estado'].forEach((s) => {
-  $(s).addEventListener('input', () => renderActividades(filtradas()));
-});
+['#buscar', '#f-frente', '#f-estado'].forEach((s) => $(s).addEventListener('input', dibujarLista));
 
 /* ---------- Exportar CSV ---------- */
-$('#btn-csv').addEventListener('click', () => {
-  const celda = (v) => `"${String(v ?? '').replaceAll('"', '""')}"`;
-  const filas = [['Título', 'Frente', 'Fecha', 'Hora', 'Estado', 'Notas']];
-  const ahora = new Date();
-  actividades.forEach((a) => filas.push([a.titulo, a.frente, a.fecha, a.hora, estadoDe(a, ahora), a.notas]));
-  const csv = '﻿' + filas.map((f) => f.map(celda).join(',')).join('\r\n');
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  const enlace = Object.assign(document.createElement('a'), { href: url, download: 'nosemepasa-actividades.csv' });
-  enlace.click();
-  URL.revokeObjectURL(url);
-});
+$('#btn-csv').addEventListener('click', () => descargarCSV(actividades));
 
 /* ---------- Tema ---------- */
 $('#btn-tema').addEventListener('click', () => {
@@ -164,4 +163,4 @@ llenarSelectoresFrente();
 llenarFormFicha(ficha);
 renderTarjeta(ficha);
 refrescar();
-setInterval(refrescar, 60 * 1000); // actualiza "faltan X h" cada minuto
+setInterval(refrescar, 60 * 1000); // actualiza «faltan X h» cada minuto

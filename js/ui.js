@@ -1,43 +1,7 @@
-// ui.js · Cambios visibles en la pantalla
+// ui.js · Cambios visibles en la pantalla (sin lógica de datos ni de fechas)
 import { FRENTES } from './datos.js';
-
-const $ = (selector) => document.querySelector(selector);
-const COLORES = {
-  ITC: '#3b5bdb', UCC: '#0c8599', CUN: '#9c36b5', Trabajo: '#e8590c', Personal: '#2f9e44'
-};
-
-/* ---------- Utilidades de tiempo ---------- */
-export function vencimiento(act) {
-  return new Date(`${act.fecha}T${act.hora || '23:59'}`);
-}
-
-export function estadoDe(act, ahora = new Date()) {
-  if (act.completada) return 'completada';
-  const diff = vencimiento(act) - ahora;
-  if (diff < 0) return 'vencida';
-  if (diff <= 24 * 60 * 60 * 1000) return 'proxima';
-  return 'pendiente';
-}
-
-function textoRestante(act, ahora = new Date()) {
-  const diff = vencimiento(act) - ahora;
-  const abs = Math.abs(diff);
-  const min = Math.floor(abs / 60000);
-  const h = Math.floor(min / 60);
-  const d = Math.floor(h / 24);
-  let t;
-  if (d >= 1) t = `${d} d ${h % 24} h`;
-  else if (h >= 1) t = `${h} h ${min % 60} min`;
-  else t = `${min} min`;
-  return diff < 0 ? `venció hace ${t}` : `faltan ${t}`;
-}
-
-function formatoFecha(act) {
-  return vencimiento(act).toLocaleString('es-CO', {
-    weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
-}
+import { $, crear } from './dom.js';
+import { estadoDe, ETIQUETA_ESTADO, textoRestante, formatoFecha } from './tiempo.js';
 
 /* ---------- Mensajes ---------- */
 export function mostrarMensaje(texto, tipo = 'ok', selector = '#mensaje') {
@@ -62,48 +26,87 @@ export function llenarFormFicha(ficha) {
   }
 }
 
+export function marcarCampoFicha(nombre, esInvalido) {
+  const campo = $(`#form-ficha [name="${nombre}"]`);
+  if (!campo) return;
+  campo.setAttribute('aria-invalid', String(esInvalido));
+}
+
 /* ---------- Selectores de frente ---------- */
+function opciones(select, lista) {
+  select.replaceChildren(...lista.map(([valor, texto]) => crear('option', { texto, atributos: { value: valor } })));
+}
+
 export function llenarSelectoresFrente() {
-  $('#frente').innerHTML = FRENTES.map((f) => `<option value="${f}">${f}</option>`).join('');
-  $('#f-frente').innerHTML =
-    '<option value="todos">Todos los frentes</option>' +
-    FRENTES.map((f) => `<option value="${f}">${f}</option>`).join('');
+  opciones($('#frente'), FRENTES.map((f) => [f, f]));
+  opciones($('#f-frente'), [['todos', 'Todos los frentes'], ...FRENTES.map((f) => [f, f])]);
 }
 
 /* ---------- Lista de actividades ---------- */
-function escapar(texto) {
-  const d = document.createElement('div');
-  d.textContent = texto ?? '';
-  return d.innerHTML;
+function icono(emoji) {
+  return crear('span', { texto: emoji, atributos: { 'aria-hidden': 'true' } });
+}
+
+function crearItem(act, ahora) {
+  const est = estadoDe(act, ahora);
+  const li = crear('li', { clase: `item item--${est}`, datos: { id: act.id, frente: act.frente } });
+  li.dataset.frente = act.frente;
+
+  const check = crear('input', {
+    clase: 'item__check',
+    atributos: { type: 'checkbox', 'aria-label': `Marcar como completada: ${act.titulo}` },
+    datos: { accion: 'alternar' }
+  });
+  check.checked = act.completada;
+
+  const estado = crear('span', {
+    clase: `estado estado--${est}`,
+    texto: est === 'completada' ? ETIQUETA_ESTADO[est] : `${ETIQUETA_ESTADO[est]} · ${textoRestante(act, ahora)}`
+  });
+  const fecha = crear('span');
+  fecha.append(icono('📅 '), formatoFecha(act));
+
+  const meta = crear('p', { clase: 'item__meta' });
+  meta.append(crear('span', { clase: 'etiqueta', texto: act.frente }), fecha, estado);
+
+  const cuerpo = crear('div');
+  cuerpo.append(crear('p', { clase: 'item__titulo', texto: act.titulo }), meta);
+  if (act.notas) cuerpo.append(crear('p', { clase: 'item__notas', texto: act.notas }));
+
+  const botonEditar = crear('button', {
+    clase: 'icono', atributos: { type: 'button', 'aria-label': `Editar: ${act.titulo}` }, datos: { accion: 'editar' }
+  });
+  botonEditar.append(icono('✏️'));
+  const botonEliminar = crear('button', {
+    clase: 'icono', atributos: { type: 'button', 'aria-label': `Eliminar: ${act.titulo}` }, datos: { accion: 'eliminar' }
+  });
+  botonEliminar.append(icono('🗑️'));
+  const acciones = crear('div', { clase: 'item__acciones' });
+  acciones.append(botonEditar, botonEliminar);
+
+  li.append(check, cuerpo, acciones);
+  return li;
 }
 
 export function renderActividades(lista) {
-  const ul = $('#lista');
   const ahora = new Date();
-  ul.innerHTML = lista.map((a) => {
-    const est = estadoDe(a, ahora);
-    const etiquetaEstado = {
-      completada: '✔ Completada', vencida: '⚠ Vencida', proxima: '⏳ Próxima', pendiente: 'Pendiente'
-    }[est];
-    return `
-      <li class="item item--${est}" data-id="${a.id}" style="--color-frente:${COLORES[a.frente] || '#3b5bdb'}">
-        <input class="item__check" type="checkbox" data-accion="alternar" ${a.completada ? 'checked' : ''} aria-label="Marcar como completada: ${escapar(a.titulo)}">
-        <div>
-          <p class="item__titulo">${escapar(a.titulo)}</p>
-          <p class="item__meta">
-            <span class="etiqueta">${escapar(a.frente)}</span>
-            <span>📅 ${formatoFecha(a)}</span>
-            <span class="estado estado--${est}">${etiquetaEstado}${est === 'completada' ? '' : ' · ' + textoRestante(a, ahora)}</span>
-          </p>
-          ${a.notas ? `<p class="item__notas">${escapar(a.notas)}</p>` : ''}
-        </div>
-        <div class="item__acciones">
-          <button class="icono" type="button" data-accion="editar" aria-label="Editar">✏️</button>
-          <button class="icono" type="button" data-accion="eliminar" aria-label="Eliminar">🗑️</button>
-        </div>
-      </li>`;
-  }).join('');
+  $('#lista').replaceChildren(...lista.map((a) => crearItem(a, ahora)));
   $('#vacio').hidden = lista.length > 0;
+}
+
+/** Devuelve qué elemento de la lista tiene el foco, para devolvérselo tras redibujar. */
+export function foco() {
+  const activo = document.activeElement;
+  const item = activo?.closest?.('#lista .item');
+  if (!item) return null;
+  return { id: item.dataset.id, accion: activo.dataset.accion };
+}
+
+export function restaurarFoco(guardado) {
+  if (!guardado) return;
+  const destino =
+    $(`#lista [data-id="${CSS.escape(guardado.id)}"] [data-accion="${guardado.accion}"]`) || $('#t-lista');
+  destino?.focus();
 }
 
 /* ---------- Resumen y gráfica ---------- */
@@ -120,29 +123,39 @@ export function renderResumen(todas) {
   $('#r-vencidas').textContent = vencidas;
   $('#barra').style.width = `${pct}%`;
   $('#barra-txt').textContent = `${pct} % completado`;
-  document.querySelector('.progreso').setAttribute('aria-valuenow', pct);
-
+  $('.progreso').setAttribute('aria-valuenow', pct);
   renderGrafica(todas);
 }
 
+const NS = 'http://www.w3.org/2000/svg';
+function svg(etiqueta, atributos = {}, texto) {
+  const el = document.createElementNS(NS, etiqueta);
+  for (const [k, v] of Object.entries(atributos)) el.setAttribute(k, v);
+  if (texto !== undefined) el.textContent = texto;
+  return el;
+}
+
 function renderGrafica(todas) {
-  const svg = $('#grafica');
+  const grafica = $('#grafica');
   const maxTotal = Math.max(1, ...FRENTES.map((f) => todas.filter((a) => a.frente === f).length));
   const anchoMax = 250;
-  const filas = FRENTES.map((f, i) => {
+  const resumen = [];
+  const partes = FRENTES.flatMap((f, i) => {
     const total = todas.filter((a) => a.frente === f).length;
     const hechas = todas.filter((a) => a.frente === f && a.completada).length;
     const y = 12 + i * 30;
-    const wTotal = (total / maxTotal) * anchoMax;
-    const wHechas = (hechas / maxTotal) * anchoMax;
-    return `
-      <text x="0" y="${y + 14}">${f}</text>
-      <rect x="70" y="${y}" width="${anchoMax}" height="20" rx="5" fill="currentColor" opacity=".08"></rect>
-      <rect x="70" y="${y}" width="${wTotal}" height="20" rx="5" fill="${COLORES[f]}" opacity=".35"></rect>
-      <rect x="70" y="${y}" width="${wHechas}" height="20" rx="5" fill="${COLORES[f]}"></rect>
-      <text x="${78 + anchoMax}" y="${y + 14}">${hechas}/${total}</text>`;
-  }).join('');
-  svg.innerHTML = filas;
+    const color = `fill:var(--f-${f})`;
+    resumen.push(`${f}: ${hechas} de ${total}`);
+    return [
+      svg('text', { x: 0, y: y + 14 }, f),
+      svg('rect', { x: 70, y, width: anchoMax, height: 20, rx: 5, fill: 'currentColor', opacity: '.08' }),
+      svg('rect', { x: 70, y, width: (total / maxTotal) * anchoMax, height: 20, rx: 5, style: color, opacity: '.35' }),
+      svg('rect', { x: 70, y, width: (hechas / maxTotal) * anchoMax, height: 20, rx: 5, style: color }),
+      svg('text', { x: 78 + anchoMax, y: y + 14 }, `${hechas}/${total}`)
+    ];
+  });
+  grafica.replaceChildren(...partes);
+  grafica.setAttribute('aria-label', `Actividades completadas por frente. ${resumen.join('; ')}.`);
 }
 
 /* ---------- Formulario de actividad ---------- */
@@ -169,16 +182,20 @@ export function limpiarFormActividad() {
   $('#btn-guardar').textContent = 'Agregar actividad';
   $('#btn-cancelar').hidden = true;
   $('#t-nueva').textContent = 'Nueva actividad';
-  f.querySelectorAll('.invalido').forEach((e) => e.classList.remove('invalido'));
+  f.querySelectorAll('[aria-invalid]').forEach((e) => e.removeAttribute('aria-invalid'));
 }
 
 export function marcarInvalido(nombre, esInvalido) {
   const campo = $('#form-actividad').elements[nombre];
-  if (campo) campo.classList.toggle('invalido', esInvalido);
+  if (!campo) return;
+  if (esInvalido) campo.setAttribute('aria-invalid', 'true');
+  else campo.removeAttribute('aria-invalid');
 }
 
 /* ---------- Tema ---------- */
 export function aplicarTema(tema) {
   if (tema === 'oscuro') document.documentElement.dataset.tema = 'oscuro';
   else delete document.documentElement.dataset.tema;
+  const boton = $('#btn-tema');
+  boton.setAttribute('aria-pressed', String(tema === 'oscuro'));
 }

@@ -5,7 +5,7 @@ export const FRENTES = ['ITC', 'UCC', 'CUN', 'Trabajo', 'Personal'];
 export const estudianteBase = {
   nombre: 'Oscar Norvey Doncel López',
   programa: 'Desarrollo de Software · ITC',
-  correo: 'oscardoncel.90@gmail.com',
+  correo: 'estudiante@ejemplo.com',
   frase: 'Lo que no se anota, se pasa.'
 };
 
