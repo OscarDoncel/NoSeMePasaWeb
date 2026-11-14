@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NoSeMePasa · Agenda de actividades con fecha y hora de vencimiento</title>
-  <meta name="description" content="NoSeMePasa es una agenda web para no olvidar entregas: organiza actividades académicas, laborales y personales con fecha y hora de vencimiento, filtros y gráfica de avance.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Inicio · NoSeMePasa</title>
+  <meta name="description" content="Resumen de tus actividades académicas, laborales y personales: avance, gráfica por frente y lo más urgente por vencer.">
   <meta name="author" content="Oscar Norvey Doncel López">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#3b5bdb">
@@ -14,31 +15,45 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="es_CO">
   <meta property="og:site_name" content="NoSeMePasa">
-  <meta property="og:title" content="NoSeMePasa · Agenda de actividades">
-  <meta property="og:description" content="Que ninguna entrega se te pase: actividades con fecha y hora de vencimiento, filtros y gráfica de avance.">
+  <meta property="og:title" content="Inicio · NoSeMePasa">
+  <meta property="og:description" content="Resumen de tus actividades académicas, laborales y personales: avance, gráfica por frente y lo más urgente por vencer.">
   <meta property="og:url" content="https://oscardoncel.github.io/NoSeMePasaWeb/">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://oscardoncel.github.io/NoSeMePasaWeb/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="NoSeMePasa: agenda de actividades con fecha y hora de vencimiento">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://oscardoncel.github.io/NoSeMePasaWeb/assets/og-image.jpg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <script src="js/tema-inicial.js"></script>
   <link rel="stylesheet" href="css/styles.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "NoSeMePasa", "url": "https://oscardoncel.github.io/NoSeMePasaWeb/", "description": "Agenda web para no olvidar entregas: actividades académicas, laborales y personales con fecha y hora de vencimiento.", "applicationCategory": "ProductivityApplication", "operatingSystem": "Any", "inLanguage": "es", "author": {"@type": "Person", "name": "Oscar Norvey Doncel López"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "COP"}}</script>
 </head>
 <body>
   <a class="saltar" href="#contenido">Saltar al contenido</a>
   <header class="encabezado">
-    <div class="marca">
+    <a class="marca" href="index.html">
       <span class="marca__icono" aria-hidden="true">⏰</span>
-      <div>
-        <h1>NoSeMePasa</h1>
-        <p class="marca__lema">Que ninguna entrega se te pase.</p>
-      </div>
-    </div>
-    <nav aria-label="Secciones">
-      <a href="#resumen">Resumen</a>
-      <a href="#actividades">Actividades</a>
-      <a href="#ficha">Mi ficha</a>
+      <span>
+        <span class="marca__nombre">NoSeMePasa</span>
+        <span class="marca__lema">Que ninguna entrega se te pase.</span>
+      </span>
+    </a>
+    <nav aria-label="Principal">
+        <a href="index.html" aria-current="page">Inicio</a>
+        <a href="actividades.html">Actividades</a>
+        <a href="ficha.html">Mi ficha</a>
     </nav>
     <button id="btn-tema" class="btn btn--ghost" type="button" aria-pressed="false"><span aria-hidden="true">🌓</span> Modo oscuro</button>
   </header>
 
   <main id="contenido" class="contenedor" tabindex="-1">
+    <section class="seccion hero" aria-labelledby="t-inicio">
+      <h1 id="t-inicio">Tu panorama de actividades</h1>
+      <p>Organiza tus entregas académicas (ITC, UCC, CUN), laborales y personales con fecha y hora de vencimiento, y mira de un vistazo cómo vas.</p>
+      <a class="btn" href="actividades.html">Agregar o ver actividades</a>
+    </section>
+
     <section id="resumen" class="seccion" aria-labelledby="t-resumen">
       <h2 id="t-resumen">Resumen de avance</h2>
       <div class="resumen">
@@ -53,108 +68,25 @@
       <p id="barra-txt" class="progreso__txt">0 % completado</p>
       <figure class="grafica">
         <figcaption>Actividades por frente (completadas / total)</figcaption>
-        <svg id="grafica" viewBox="0 0 420 170" role="img" aria-label="Gráfica de actividades por frente"></svg>
+        <svg id="grafica" viewBox="0 0 320 176" role="img" aria-label="Gráfica de actividades por frente"></svg>
       </figure>
     </section>
 
-    <section id="nueva" class="seccion" aria-labelledby="t-nueva">
-      <h2 id="t-nueva">Nueva actividad</h2>
-      <form id="form-actividad" novalidate>
-        <input type="hidden" name="id">
-        <div class="campo campo--ancho">
-          <label for="titulo">Título</label>
-          <input id="titulo" name="titulo" type="text" maxlength="80" placeholder="Ej.: Entregar proyecto final de Web" aria-describedby="mensaje-actividad" required>
-        </div>
-        <div class="campo">
-          <label for="frente">Frente</label>
-          <select id="frente" name="frente" required></select>
-        </div>
-        <div class="campo">
-          <label for="fecha">Fecha de vencimiento</label>
-          <input id="fecha" name="fecha" type="date" aria-describedby="mensaje-actividad" required>
-        </div>
-        <div class="campo">
-          <label for="hora">Hora</label>
-          <input id="hora" name="hora" type="time" value="23:59" aria-describedby="mensaje-actividad" required>
-        </div>
-        <div class="campo campo--ancho">
-          <label for="notas">Notas (opcional)</label>
-          <textarea id="notas" name="notas" rows="2" maxlength="200"></textarea>
-        </div>
-        <div class="acciones">
-          <button id="btn-guardar" class="btn" type="submit">Agregar actividad</button>
-          <button id="btn-cancelar" class="btn btn--ghost" type="button" hidden>Cancelar edición</button>
-        </div>
-        <p id="mensaje-actividad" class="mensaje" role="status" aria-live="polite"></p>
-      </form>
-    </section>
-
-    <section id="actividades" class="seccion" aria-labelledby="t-lista">
+    <section id="urgente" class="seccion" aria-labelledby="t-urgente">
       <div class="seccion__cab">
-        <h2 id="t-lista" tabindex="-1">Mis actividades</h2>
-        <button id="btn-csv" class="btn btn--ghost" type="button">Exportar CSV</button>
+        <h2 id="t-urgente">Lo más urgente</h2>
+        <a class="btn btn--ghost" href="actividades.html">Ver todas</a>
       </div>
-      <div class="filtros">
-        <div class="campo">
-          <label for="buscar" class="sr-only">Buscar actividades</label>
-          <input id="buscar" type="search" placeholder="Buscar por título o nota…">
-        </div>
-        <div class="campo">
-          <label for="f-frente" class="sr-only">Filtrar por frente</label>
-          <select id="f-frente"></select>
-        </div>
-        <div class="campo">
-          <label for="f-estado" class="sr-only">Filtrar por estado</label>
-          <select id="f-estado">
-          <option value="todas">Todos los estados</option>
-          <option value="pendientes">Pendientes</option>
-          <option value="proximas">Vencen en 24 h</option>
-          <option value="vencidas">Vencidas</option>
-          <option value="completadas">Completadas</option>
-          </select>
-        </div>
-      </div>
-      <ul id="lista" class="lista" aria-labelledby="t-lista"></ul>
-      <p id="vacio" class="vacio" hidden>No hay actividades que coincidan. ¡Agrega la primera!</p>
-    </section>
-
-    <section id="ficha" class="seccion" aria-labelledby="t-ficha">
-      <h2 id="t-ficha">Mi ficha</h2>
-      <div class="ficha">
-        <article class="tarjeta" aria-live="polite">
-          <h3 id="t-nombre">Tu nombre</h3>
-          <p id="t-programa" class="tarjeta__prog">Programa</p>
-          <p id="t-correo">correo@ejemplo.com</p>
-          <blockquote id="t-frase">Tu frase</blockquote>
-        </article>
-        <form id="form-ficha" novalidate>
-          <div class="campo">
-            <label for="nombre">Nombre</label>
-            <input id="nombre" name="nombre" type="text" autocomplete="name" required aria-describedby="mensaje">
-          </div>
-          <div class="campo">
-            <label for="programa">Programa</label>
-            <input id="programa" name="programa" type="text">
-          </div>
-          <div class="campo">
-            <label for="correo">Correo</label>
-            <input id="correo" name="correo" type="email" autocomplete="email">
-          </div>
-          <div class="campo">
-            <label for="frase">Frase</label>
-            <input id="frase" name="frase" type="text" maxlength="100">
-          </div>
-          <button class="btn" type="submit">Guardar ficha</button>
-          <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
-        </form>
-      </div>
+      <ul id="lista-urgente" class="lista" aria-labelledby="t-urgente"></ul>
+      <p id="vacio-urgente" class="vacio" hidden>No tienes actividades pendientes. <a href="actividades.html">Agrega una nueva</a>.</p>
     </section>
   </main>
 
   <footer class="pie">
     <p>NoSeMePasa · Proyecto final de Desarrollo Web · ITC (Instituto Técnico Cofrem) · 2026</p>
+    <p><a href="https://github.com/OscarDoncel/NoSeMePasaWeb">Código en GitHub</a></p>
   </footer>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/inicio.js"></script>
 </body>
 </html>

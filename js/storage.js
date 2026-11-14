@@ -1,4 +1,5 @@
-// storage.js · Acceso al navegador (localStorage + JSON)
+// storage.js · Acceso al navegador (localStorage + JSON). Nunca lanza errores hacia afuera.
+import { esActividadValida, normalizarActividad, normalizarFicha } from './validar.js';
 
 const CLAVE_FICHA = 'nsmp_ficha';
 const CLAVE_ACTIVIDADES = 'nsmp_actividades';
@@ -29,15 +30,18 @@ export function guardarFicha(ficha) {
 }
 
 export function cargarFicha(estudianteBase) {
-  return { ...estudianteBase, ...leer(CLAVE_FICHA, {}) };
+  return normalizarFicha(leer(CLAVE_FICHA, null), estudianteBase);
 }
 
 export function guardarActividades(lista) {
   return escribir(CLAVE_ACTIVIDADES, lista);
 }
 
+/** Si lo guardado no es una lista, usa la base; si trae elementos dañados, los descarta. */
 export function cargarActividades(actividadesBase = []) {
-  return leer(CLAVE_ACTIVIDADES, actividadesBase);
+  const guardado = leer(CLAVE_ACTIVIDADES, null);
+  if (!Array.isArray(guardado)) return actividadesBase.map(normalizarActividad);
+  return guardado.filter(esActividadValida).map(normalizarActividad);
 }
 
 export function guardarTema(tema) {
@@ -45,5 +49,6 @@ export function guardarTema(tema) {
 }
 
 export function cargarTema() {
-  return leer(CLAVE_TEMA, null);
+  const tema = leer(CLAVE_TEMA, null);
+  return tema === 'oscuro' || tema === 'claro' ? tema : null;
 }

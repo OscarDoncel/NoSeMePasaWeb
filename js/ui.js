@@ -1,7 +1,7 @@
 // ui.js · Cambios visibles en la pantalla (sin lógica de datos ni de fechas)
 import { FRENTES } from './datos.js';
 import { $, crear } from './dom.js';
-import { estadoDe, ETIQUETA_ESTADO, textoRestante, formatoFecha } from './tiempo.js';
+import { estadoDe, ETIQUETA_ESTADO, textoRestante, formatoFecha, vencimiento, fechaHoy } from './tiempo.js';
 
 /* ---------- Mensajes ---------- */
 export function mostrarMensaje(texto, tipo = 'ok', selector = '#mensaje') {
@@ -47,10 +47,9 @@ function icono(emoji) {
   return crear('span', { texto: emoji, atributos: { 'aria-hidden': 'true' } });
 }
 
-function crearItem(act, ahora) {
+function crearItem(act, ahora, { lectura = false } = {}) {
   const est = estadoDe(act, ahora);
-  const li = crear('li', { clase: `item item--${est}`, datos: { id: act.id, frente: act.frente } });
-  li.dataset.frente = act.frente;
+  const li = crear('li', { clase: `item item--${est}${lectura ? ' item--lectura' : ''}`, datos: { id: act.id, frente: act.frente } });
 
   const check = crear('input', {
     clase: 'item__check',
@@ -84,14 +83,53 @@ function crearItem(act, ahora) {
   const acciones = crear('div', { clase: 'item__acciones' });
   acciones.append(botonEditar, botonEliminar);
 
-  li.append(check, cuerpo, acciones);
+  if (lectura) li.append(cuerpo);
+  else li.append(check, cuerpo, acciones);
   return li;
 }
 
-export function renderActividades(lista) {
+/**
+ * Dibuja la lista. `totalGeneral` es cuántas actividades existen sin filtrar:
+ * así el mensaje vacío distingue «no hay nada» de «ningún resultado con estos filtros».
+ */
+export function renderActividades(lista, totalGeneral = lista.length) {
   const ahora = new Date();
   $('#lista').replaceChildren(...lista.map((a) => crearItem(a, ahora)));
   $('#vacio').hidden = lista.length > 0;
+  $('#vacio-txt').textContent =
+    totalGeneral === 0
+      ? 'Aún no tienes actividades. ¡Agrega la primera!'
+      : 'Ninguna actividad coincide con los filtros.';
+  $('#btn-limpiar').hidden = totalGeneral === 0;
+}
+
+export function limpiarFiltros() {
+  $('#buscar').value = '';
+  $('#f-frente').value = 'todos';
+  $('#f-estado').value = 'todas';
+}
+
+/** Diálogo nativo <dialog>: atrapa el foco, se cierra con Esc y lo entienden los lectores de pantalla. */
+export function confirmarEliminar(titulo) {
+  const dialogo = $('#dlg-eliminar');
+  $('#dlg-titulo').textContent = titulo;
+  return new Promise((resolver) => {
+    dialogo.addEventListener('close', () => resolver(dialogo.returnValue === 'si'), { once: true });
+    dialogo.returnValue = 'no';
+    dialogo.showModal();
+    $('#dlg-cancelar').focus();
+  });
+}
+
+/** Inicio: las 3 actividades pendientes con vencimiento más cercano (solo lectura). */
+export function renderUrgentes(todas, max = 3) {
+  const ahora = new Date();
+  const urgentes = todas
+    .filter((a) => !a.completada)
+    .sort((a, b) => vencimiento(a) - vencimiento(b))
+    .slice(0, max);
+  $('#lista-urgente').replaceChildren(...urgentes.map((a) => crearItem(a, ahora, { lectura: true })));
+  $('#vacio-urgente').hidden = urgentes.length > 0;
 }
 
 /** Devuelve qué elemento de la lista tiene el foco, para devolvérselo tras redibujar. */
@@ -138,20 +176,19 @@ function svg(etiqueta, atributos = {}, texto) {
 function renderGrafica(todas) {
   const grafica = $('#grafica');
   const maxTotal = Math.max(1, ...FRENTES.map((f) => todas.filter((a) => a.frente === f).length));
-  const anchoMax = 250;
+  const anchoMax = 190;
   const resumen = [];
   const partes = FRENTES.flatMap((f, i) => {
     const total = todas.filter((a) => a.frente === f).length;
     const hechas = todas.filter((a) => a.frente === f && a.completada).length;
-    const y = 12 + i * 30;
-    const color = `fill:var(--f-${f})`;
+    const y = 8 + i * 32;
     resumen.push(`${f}: ${hechas} de ${total}`);
     return [
-      svg('text', { x: 0, y: y + 14 }, f),
-      svg('rect', { x: 70, y, width: anchoMax, height: 20, rx: 5, fill: 'currentColor', opacity: '.08' }),
-      svg('rect', { x: 70, y, width: (total / maxTotal) * anchoMax, height: 20, rx: 5, style: color, opacity: '.35' }),
-      svg('rect', { x: 70, y, width: (hechas / maxTotal) * anchoMax, height: 20, rx: 5, style: color }),
-      svg('text', { x: 78 + anchoMax, y: y + 14 }, `${hechas}/${total}`)
+      svg('text', { x: 0, y: y + 16 }, f),
+      svg('rect', { class: 'barra-fondo', x: 62, y, width: anchoMax, height: 22, rx: 5 }),
+      svg('rect', { class: `barra-total f-${f}`, x: 62, y, width: (total / maxTotal) * anchoMax, height: 22, rx: 5 }),
+      svg('rect', { class: `barra-hechas f-${f}`, x: 62, y, width: (hechas / maxTotal) * anchoMax, height: 22, rx: 5 }),
+      svg('text', { x: 62 + anchoMax + 8, y: y + 16 }, `${hechas}/${total}`)
     ];
   });
   grafica.replaceChildren(...partes);
@@ -178,6 +215,7 @@ export function limpiarFormActividad() {
   const f = $('#form-actividad');
   f.reset();
   f.elements.id.value = '';
+  f.elements.fecha.value = fechaHoy();
   f.elements.hora.value = '23:59';
   $('#btn-guardar').textContent = 'Agregar actividad';
   $('#btn-cancelar').hidden = true;

@@ -2,13 +2,22 @@
 
 **Autor:** Oscar Norvey Doncel López
 **Curso:** Desarrollo Web · Instituto Técnico Cofrem (ITC)
-**Entregables:** Tarea 9 · Aplicación Web Integrada (v1.0.0) y Tarea 10 · Publicación Web en GitHub Pages (v1.1.0)
+**Entregables:** Tarea 9 · Aplicación Web Integrada (v1.0.0) y Tarea 10 · Publicación Web en GitHub Pages (v1.1.0 a v1.3.0)
 
 ## Enlace público
 🔗 **https://oscardoncel.github.io/NoSeMePasaWeb/**
 
 Código: https://github.com/OscarDoncel/NoSeMePasaWeb
 **Idea elegida:** Agenda de tareas (nivel básico) con las ampliaciones: modo oscuro con preferencia guardada, exportar a CSV, buscador con filtros combinados y gráfica simple en SVG.
+
+## Las 3 páginas
+| Página | Archivo | Qué contiene |
+|---|---|---|
+| **Inicio** | `index.html` | Presentación, resumen de avance (contadores, barra y gráfica SVG por frente) y las 3 actividades más urgentes |
+| **Actividades** | `actividades.html` | Crear, editar, eliminar y completar actividades; filtros combinados; exportar a CSV |
+| **Mi ficha** | `ficha.html` | Ficha del estudiante con validación y sección «Acerca de NoSeMePasa» (uso, tecnologías, alcance) |
+
+Las tres comparten encabezado con menú (la página actual se marca con `aria-current`), modo oscuro y los datos guardados en `localStorage`.
 
 ## ¿Qué hace?
 Organiza actividades académicas (ITC, UCC, CUN), laborales y personales con **fecha y hora de vencimiento**:
@@ -27,37 +36,56 @@ Los módulos de JavaScript (`import`/`export`) **solo funcionan con un servidor 
 
 ## Estructura
 ```
-index.html          Estructura semántica (header, nav, main, section, article, form, footer)
+index.html          Página 1 · Inicio
+actividades.html    Página 2 · Actividades
+ficha.html          Página 3 · Mi ficha y acerca del proyecto
 favicon.svg         Ícono del sitio
-css/styles.css      Variables, diseño adaptable (grid/flex), animaciones, modo oscuro
+assets/             Imagen para compartir el enlace (og-image.jpg) e ícono para iPhone
+css/styles.css      Variables, diseño adaptable, animaciones, modo oscuro, impresión
 js/datos.js         Datos base (estudianteBase, actividadesBase, FRENTES)
-js/storage.js       Acceso a localStorage (guardar/cargar ficha, actividades, tema)
+js/validar.js       Reglas para aceptar o descartar datos (fechas reales, horas, frentes)
+js/storage.js       Acceso a localStorage; nunca rompe la app si los datos están dañados
 js/tiempo.js        Fechas y estados de una actividad (vencida, próxima, etc.)
 js/dom.js           Utilidades para buscar y crear elementos con textContent
-js/ui.js            Cambios visibles: tarjeta, lista, resumen, gráfica SVG, mensajes
+js/ui.js            Cambios visibles: tarjeta, lista, diálogo, resumen, gráfica SVG, mensajes
 js/exportar.js      Generación y descarga del CSV
-js/app.js           Conexión: eventos, validación y filtros
+js/comun.js         Lo que comparten las 3 páginas (modo oscuro)
+js/tema-inicial.js  Aplica el tema antes de pintar (evita el destello claro)
+js/inicio.js        Conexión de la página Inicio
+js/actividades.js   Conexión de la página Actividades: eventos, validación y filtros
+js/ficha.js         Conexión de la página Mi ficha
+tests/              Pruebas unitarias (node --test)
 ```
 
 ## Accesibilidad, SEO y buenas prácticas (Tarea 10)
-Resultado de Lighthouse sobre la versión local (móvil, configuración por defecto): **Rendimiento 100 · Accesibilidad 100 · Buenas prácticas 100 · SEO 100**. Además se revisó con axe-core (0 violaciones en modo claro y oscuro) y con prueba de teclado.
+Resultado de Lighthouse en cada una de las 3 páginas (móvil, configuración por defecto): **Rendimiento 100 · Accesibilidad 100 · Buenas prácticas 100 · SEO 100**. Además se revisó con axe-core (0 violaciones en modo claro y oscuro) y con prueba de teclado.
 
 | Punto de la lista de revisión | Cómo se cumple |
 |---|---|
-| Sin errores en consola | Verificado; el favicon se declara con `favicon.svg` para evitar el 404 |
+| Sin errores en consola | Verificado en las 3 páginas, también con la política de seguridad (CSP) activa |
 | Rutas relativas | `css/styles.css`, `js/app.js`, `favicon.svg` |
-| Un solo `h1`, encabezados en orden, elementos semánticos | `h1` → `h2` por sección → `h3` en la tarjeta; `header`, `nav`, `main`, `section`, `article`, `footer` |
+| Un solo `h1` por página, encabezados en orden, elementos semánticos | `h1` → `h2` por sección → `h3` en la tarjeta; `header`, `nav`, `main`, `section`, `article`, `footer` |
 | Idioma | `<html lang="es">` |
 | Formularios | Todos los campos con `label for`/`id`; errores en texto dentro de `role="status"`, con `aria-invalid` y foco en el campo con error |
 | Contraste ≥ 4.5:1 | Paleta recalculada para modo claro y oscuro; el estado se indica con texto, no solo con color |
 | Teclado y foco | Todo se usa con Tab, Enter y Espacio; `:focus-visible` con contorno; el foco se conserva al marcar o redibujar la lista |
 | «Saltar al contenido» | Primer elemento de la página, lleva a `main` |
-| Movimiento y adaptable | `prefers-reduced-motion`; sin scroll horizontal desde 320 px; fuentes en `rem` |
+| Movimiento y adaptable | `prefers-reduced-motion`; sin scroll horizontal desde 320 px en las 3 páginas; fuentes en `rem` |
 | JavaScript | Un módulo por responsabilidad; sin `innerHTML` con datos del usuario (todo con `textContent`); errores de `localStorage` capturados y mostrados |
-| SEO básico | `title`, `description`, `canonical`, Open Graph, `robots`, `theme-color` |
+| Seguridad | CSP en cada página (`script-src 'self'`, sin estilos ni scripts en línea); `textContent` en vez de `innerHTML`; datos guardados validados al leerlos |
+| Diálogo accesible | Confirmación de eliminar con `<dialog>` nativo: atrapa el foco, se cierra con Esc y el foco regresa al botón |
+| Avisos de estado | Cada acción (agregar, completar, eliminar) se anuncia en una región `role="status"` |
+| SEO básico | `title`, `description`, `canonical` y Open Graph propios en cada página, imagen para compartir, datos estructurados JSON-LD, `robots`, `theme-color` |
 
 ## Alcance y trabajo futuro
 Es un sitio estático, sin servidor. La versión completa de NoSeMePasa (hecha en Softr) incluye registro de usuarios, alertas por correo y datos por usuario; esas funciones quedan como trabajo futuro (versión móvil y con backend).
+
+## Pruebas
+Las reglas de fechas, validación, almacenamiento y CSV tienen pruebas unitarias que no necesitan instalar nada (solo Node.js 18 o superior):
+```
+npm test
+```
+Cubren, por ejemplo, el límite exacto de 24 horas, fechas inexistentes como 30 de febrero, `localStorage` dañado o lleno y el escape de comillas en el CSV.
 
 ## Cómo publicar (GitHub Pages)
 1. Repositorio público con `index.html` en la raíz.

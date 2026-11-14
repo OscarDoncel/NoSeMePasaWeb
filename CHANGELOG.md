@@ -6,6 +6,35 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). C
 ### Ideas para el próximo taller
 - (Anota aquí las mejoras que pida el docente)
 
+## [1.3.0] - 2026-11-14 · Pulido y calidad
+### Agregado
+- Pruebas unitarias (`npm test`, sin dependencias) para fechas, validación, almacenamiento y CSV.
+- `js/validar.js`: las actividades guardadas se validan al leerlas (se descartan datos dañados, fechas inexistentes, frentes desconocidos).
+- Política de seguridad de contenido (CSP) en las 3 páginas.
+- Diálogo nativo accesible para confirmar la eliminación (reemplaza `confirm()`).
+- Avisos de estado al completar o eliminar una actividad; estados vacíos distintos («sin actividades» y «sin resultados») y botón «Limpiar filtros».
+- La fecha de hoy aparece por defecto al crear una actividad.
+- Imagen para compartir el enlace (`og-image.jpg`), ícono para iPhone y datos estructurados JSON-LD.
+- Estilos de impresión y de contraste forzado.
+- `.gitattributes`, `.editorconfig` y `.nojekyll`.
+### Cambiado
+- El tema oscuro se aplica antes de pintar (sin destello claro).
+- La gráfica usa clases CSS en lugar de estilos en línea y se lee mejor en pantallas pequeñas.
+- `localStorage` lleno o dañado ya no rompe la app.
+
+## [1.2.0] - 2026-11-14 · Tres páginas (requisito del docente)
+### Cambiado
+- El proyecto pasa de una sola página a **tres**: `index.html` (Inicio), `actividades.html` y `ficha.html`.
+- Encabezado, menú y pie compartidos; la página actual se marca con `aria-current="page"`.
+- Cada página tiene su propio `h1`, `title`, `description`, `canonical` y Open Graph.
+- `js/app.js` se divide en `inicio.js`, `actividades.js` y `ficha.js`; el modo oscuro pasa a `comun.js`.
+### Agregado
+- Inicio: sección «Lo más urgente» (3 actividades pendientes con vencimiento más cercano, solo lectura).
+- Mi ficha: sección «Acerca de NoSeMePasa».
+- Enlace al repositorio en el pie de página.
+### Eliminado
+- `js/app.js` (reemplazado por los scripts de cada página).
+
 ## [1.1.0] - 2026-11-14 · Tarea 10: Publicación Web en GitHub Pages
 ### Agregado
 - Enlace «Saltar al contenido», `favicon.svg` y metadatos SEO (description, canonical, Open Graph, robots, theme-color).

@@ -1,0 +1,6 @@
+# Normaliza los saltos de línea: en el repositorio siempre LF.
+# (Evita las advertencias «LF will be replaced by CRLF» en Windows.)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary

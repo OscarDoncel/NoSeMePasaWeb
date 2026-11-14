@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Actividades · NoSeMePasa</title>
+  <meta name="description" content="Crea, edita, filtra y exporta tus actividades con fecha y hora de vencimiento de ITC, UCC, CUN, trabajo y vida personal.">
+  <meta name="author" content="Oscar Norvey Doncel López">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#3b5bdb">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://oscardoncel.github.io/NoSeMePasaWeb/actividades.html">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CO">
+  <meta property="og:site_name" content="NoSeMePasa">
+  <meta property="og:title" content="Actividades · NoSeMePasa">
+  <meta property="og:description" content="Crea, edita, filtra y exporta tus actividades con fecha y hora de vencimiento de ITC, UCC, CUN, trabajo y vida personal.">
+  <meta property="og:url" content="https://oscardoncel.github.io/NoSeMePasaWeb/actividades.html">
+  <meta property="og:image" content="https://oscardoncel.github.io/NoSeMePasaWeb/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="NoSeMePasa: agenda de actividades con fecha y hora de vencimiento">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://oscardoncel.github.io/NoSeMePasaWeb/assets/og-image.jpg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <script src="js/tema-inicial.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+  <header class="encabezado">
+    <a class="marca" href="index.html">
+      <span class="marca__icono" aria-hidden="true">⏰</span>
+      <span>
+        <span class="marca__nombre">NoSeMePasa</span>
+        <span class="marca__lema">Que ninguna entrega se te pase.</span>
+      </span>
+    </a>
+    <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a href="actividades.html" aria-current="page">Actividades</a>
+        <a href="ficha.html">Mi ficha</a>
+    </nav>
+    <button id="btn-tema" class="btn btn--ghost" type="button" aria-pressed="false"><span aria-hidden="true">🌓</span> Modo oscuro</button>
+  </header>
+
+  <main id="contenido" class="contenedor" tabindex="-1">
+    <section id="nueva" class="seccion" aria-labelledby="t-actividades">
+      <h1 id="t-actividades">Actividades</h1>
+      <h2 id="t-nueva">Nueva actividad</h2>
+      <form id="form-actividad" novalidate>
+        <input type="hidden" name="id">
+        <div class="campo campo--ancho">
+          <label for="titulo">Título</label>
+          <input id="titulo" name="titulo" type="text" maxlength="80" placeholder="Ej.: Entregar proyecto final de Web" required aria-describedby="mensaje-actividad">
+        </div>
+        <div class="campo">
+          <label for="frente">Frente</label>
+          <select id="frente" name="frente" required></select>
+        </div>
+        <div class="campo">
+          <label for="fecha">Fecha de vencimiento</label>
+          <input id="fecha" name="fecha" type="date" required aria-describedby="mensaje-actividad">
+        </div>
+        <div class="campo">
+          <label for="hora">Hora</label>
+          <input id="hora" name="hora" type="time" value="23:59" required aria-describedby="mensaje-actividad">
+        </div>
+        <div class="campo campo--ancho">
+          <label for="notas">Notas (opcional)</label>
+          <textarea id="notas" name="notas" rows="2" maxlength="200"></textarea>
+        </div>
+        <div class="acciones">
+          <button id="btn-guardar" class="btn" type="submit">Agregar actividad</button>
+          <button id="btn-cancelar" class="btn btn--ghost" type="button" hidden>Cancelar edición</button>
+        </div>
+        <p id="mensaje-actividad" class="mensaje" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="actividades" class="seccion" aria-labelledby="t-lista">
+      <div class="seccion__cab">
+        <h2 id="t-lista" tabindex="-1">Mis actividades</h2>
+        <button id="btn-csv" class="btn btn--ghost" type="button">Exportar CSV</button>
+      </div>
+      <div class="filtros">
+        <div class="campo">
+          <label for="buscar" class="sr-only">Buscar actividades</label>
+          <input id="buscar" type="search" placeholder="Buscar por título o nota…">
+        </div>
+        <div class="campo">
+          <label for="f-frente" class="sr-only">Filtrar por frente</label>
+          <select id="f-frente"></select>
+        </div>
+        <div class="campo">
+          <label for="f-estado" class="sr-only">Filtrar por estado</label>
+          <select id="f-estado">
+            <option value="todas">Todos los estados</option>
+            <option value="pendientes">Pendientes</option>
+            <option value="proximas">Vencen en 24 h</option>
+            <option value="vencidas">Vencidas</option>
+            <option value="completadas">Completadas</option>
+          </select>
+        </div>
+      </div>
+      <p id="mensaje-lista" class="mensaje" role="status" aria-live="polite"></p>
+      <ul id="lista" class="lista" aria-labelledby="t-lista"></ul>
+      <div id="vacio" class="vacio" hidden>
+        <p id="vacio-txt"></p>
+        <button id="btn-limpiar" class="btn btn--ghost" type="button">Limpiar filtros</button>
+      </div>
+    </section>
+
+    <dialog id="dlg-eliminar" aria-labelledby="dlg-h" aria-describedby="dlg-p">
+      <form method="dialog">
+        <h2 id="dlg-h">¿Eliminar esta actividad?</h2>
+        <p id="dlg-p"><strong id="dlg-titulo"></strong><br>Esta acción no se puede deshacer.</p>
+        <div class="acciones">
+          <button id="dlg-cancelar" class="btn btn--ghost" type="submit" value="no">Cancelar</button>
+          <button id="dlg-confirmar" class="btn btn--peligro" type="submit" value="si">Sí, eliminar</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <footer class="pie">
+    <p>NoSeMePasa · Proyecto final de Desarrollo Web · ITC (Instituto Técnico Cofrem) · 2026</p>
+    <p><a href="https://github.com/OscarDoncel/NoSeMePasaWeb">Código en GitHub</a></p>
+  </footer>
+
+  <script type="module" src="js/actividades.js"></script>
+</body>
+</html>

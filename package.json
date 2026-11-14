@@ -1,0 +1,12 @@
+{
+  "name": "nosemepasa",
+  "version": "1.3.0",
+  "description": "Agenda web de actividades con fecha y hora de vencimiento (HTML, CSS y JavaScript puros).",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "author": "Oscar Norvey Doncel López",
+  "license": "UNLICENSED"
+}

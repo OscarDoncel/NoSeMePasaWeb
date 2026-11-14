@@ -2,6 +2,12 @@
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 
+/** Fecha de hoy en hora local con formato AAAA-MM-DD (lo que espera <input type="date">). */
+export function fechaHoy(ahora = new Date()) {
+  const dos = (n) => String(n).padStart(2, '0');
+  return `${ahora.getFullYear()}-${dos(ahora.getMonth() + 1)}-${dos(ahora.getDate())}`;
+}
+
 export function vencimiento(act) {
   return new Date(`${act.fecha}T${act.hora || '23:59'}`);
 }

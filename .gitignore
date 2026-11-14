@@ -15,3 +15,9 @@ dist/
 # Entregables comprimidos
 *.zip
 *.rar
+
+# Guías del curso (material de clase, no parte del proyecto)
+*.pdf
+
+# Carpeta de salidas de Claude
+Claude outputs/

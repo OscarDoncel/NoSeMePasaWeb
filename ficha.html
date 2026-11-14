@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Mi ficha y acerca del proyecto · NoSeMePasa</title>
+  <meta name="description" content="Tu ficha de estudiante y la información del proyecto NoSeMePasa: cómo se usa, tecnologías y alcance.">
+  <meta name="author" content="Oscar Norvey Doncel López">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#3b5bdb">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://oscardoncel.github.io/NoSeMePasaWeb/ficha.html">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CO">
+  <meta property="og:site_name" content="NoSeMePasa">
+  <meta property="og:title" content="Mi ficha y acerca del proyecto · NoSeMePasa">
+  <meta property="og:description" content="Tu ficha de estudiante y la información del proyecto NoSeMePasa: cómo se usa, tecnologías y alcance.">
+  <meta property="og:url" content="https://oscardoncel.github.io/NoSeMePasaWeb/ficha.html">
+  <meta property="og:image" content="https://oscardoncel.github.io/NoSeMePasaWeb/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="NoSeMePasa: agenda de actividades con fecha y hora de vencimiento">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://oscardoncel.github.io/NoSeMePasaWeb/assets/og-image.jpg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <script src="js/tema-inicial.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+  <header class="encabezado">
+    <a class="marca" href="index.html">
+      <span class="marca__icono" aria-hidden="true">⏰</span>
+      <span>
+        <span class="marca__nombre">NoSeMePasa</span>
+        <span class="marca__lema">Que ninguna entrega se te pase.</span>
+      </span>
+    </a>
+    <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a href="actividades.html">Actividades</a>
+        <a href="ficha.html" aria-current="page">Mi ficha</a>
+    </nav>
+    <button id="btn-tema" class="btn btn--ghost" type="button" aria-pressed="false"><span aria-hidden="true">🌓</span> Modo oscuro</button>
+  </header>
+
+  <main id="contenido" class="contenedor" tabindex="-1">
+    <section id="ficha" class="seccion" aria-labelledby="t-ficha-pag">
+      <h1 id="t-ficha-pag">Mi ficha</h1>
+      <h2 id="t-ficha">Datos del estudiante</h2>
+      <div class="ficha">
+        <article class="tarjeta" aria-live="polite">
+          <h3 id="t-nombre">Tu nombre</h3>
+          <p id="t-programa" class="tarjeta__prog">Programa</p>
+          <p id="t-correo">correo@ejemplo.com</p>
+          <blockquote id="t-frase">Tu frase</blockquote>
+        </article>
+        <form id="form-ficha" novalidate>
+          <div class="campo">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" name="nombre" type="text" autocomplete="name" required aria-describedby="mensaje">
+          </div>
+          <div class="campo">
+            <label for="programa">Programa</label>
+            <input id="programa" name="programa" type="text">
+          </div>
+          <div class="campo">
+            <label for="correo">Correo</label>
+            <input id="correo" name="correo" type="email" autocomplete="email">
+          </div>
+          <div class="campo">
+            <label for="frase">Frase</label>
+            <input id="frase" name="frase" type="text" maxlength="100">
+          </div>
+          <button class="btn" type="submit">Guardar ficha</button>
+          <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="acerca" class="seccion acerca" aria-labelledby="t-acerca">
+      <h2 id="t-acerca">Acerca de NoSeMePasa</h2>
+      <p>NoSeMePasa es una agenda web para quien estudia en varias instituciones y además trabaja: reúne en un solo lugar las actividades del ITC, la UCC y la CUN, las del trabajo y las personales, cada una con su fecha y hora de vencimiento.</p>
+      <h3>Cómo se usa</h3>
+      <ol>
+        <li>En <a href="actividades.html">Actividades</a>, escribe el título, elige el frente, la fecha y la hora, y pulsa «Agregar actividad».</li>
+        <li>Marca cada actividad como completada cuando la termines.</li>
+        <li>En <a href="index.html">Inicio</a> ves el porcentaje de avance, la gráfica por frente y lo más urgente.</li>
+      </ol>
+      <h3>Tecnologías</h3>
+      <ul>
+        <li>HTML5 semántico, CSS3 con variables y modo oscuro, y JavaScript puro con módulos.</li>
+        <li>Los datos se guardan en este navegador con <code>localStorage</code>: no se envían a ningún servidor.</li>
+      </ul>
+      <h3>Proyecto</h3>
+      <p>Proyecto final del curso de Desarrollo Web del Instituto Técnico Cofrem (ITC), por Oscar Norvey Doncel López. El código está en <a href="https://github.com/OscarDoncel/NoSeMePasaWeb">GitHub</a>.</p>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p>NoSeMePasa · Proyecto final de Desarrollo Web · ITC (Instituto Técnico Cofrem) · 2026</p>
+    <p><a href="https://github.com/OscarDoncel/NoSeMePasaWeb">Código en GitHub</a></p>
+  </footer>
+
+  <script type="module" src="js/ficha.js"></script>
+</body>
+</html>
