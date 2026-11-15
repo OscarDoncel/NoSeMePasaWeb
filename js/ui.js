@@ -80,7 +80,7 @@ function crearItem(act, ahora, { lectura = false, resaltar = false } = {}) {
   if (act.notas) cuerpo.append(crear('p', { clase: 'item__notas', texto: act.notas }));
 
   const acciones = crear('div', { clase: 'item__acciones' });
-  acciones.append(botonIcono('editar', '✏️', `Editar: ${act.titulo}`), botonIcono('eliminar', '🗑️', `Eliminar: ${act.titulo}`));
+  acciones.append(botonIcono('recordar', '⏰', `Agregar recordatorio al calendario: ${act.titulo}`), botonIcono('editar', '✏️', `Editar: ${act.titulo}`), botonIcono('eliminar', '🗑️', `Eliminar: ${act.titulo}`));
 
   if (lectura) li.append(cuerpo);
   else li.append(check, cuerpo, acciones);

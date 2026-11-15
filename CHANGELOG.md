@@ -11,7 +11,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). C
 - Validación del correo en la ficha con mensaje en texto; límites de longitud en nombre y correo.
 - `js/logica.js` (crear, filtrar, ordenar y contar actividades, sin DOM) y `js/grafica.js` (gráfica SVG).
 - Animación con propósito: resaltado de la actividad recién agregada o editada (respeta `prefers-reduced-motion`).
-- Pruebas de `logica.js`, `esCorreoValido` y `faltantesActividad` (32 en total).
+- Botón ⏰ por actividad: descarga un recordatorio de calendario (`.ics`) con avisos 24 h y 1 h antes (`generarICS`).
+- Pruebas de `logica.js`, `esCorreoValido`, `faltantesActividad` y `generarICS` (33 en total).
 - README con tabla de funciones completas y pendientes, mapa de módulos, criterios de evaluación y tabla de contraste.
 ### Cambiado
 - `comun.js` pasa a llamarse `tema.js`; `exportar.js` solo genera el CSV y la descarga vive en `dom.js`.

@@ -7,7 +7,7 @@ import {
 } from './ui.js';
 import { faltantesActividad } from './validar.js';
 import { crearActividad, filtrarYOrdenar } from './logica.js';
-import { generarCSV } from './exportar.js';
+import { generarCSV, generarICS } from './exportar.js';
 import { iniciarTema } from './tema.js';
 import { $, descargarTexto } from './dom.js';
 
@@ -72,6 +72,10 @@ $('#lista').addEventListener('click', (evento) => {
     act.completada = control.checked;
     persistir();
     mostrarMensaje(`${act.completada ? 'Completada' : 'Pendiente de nuevo'}: ${act.titulo}.`, 'ok', '#mensaje-lista');
+  } else if (control.dataset.accion === 'recordar') {
+    const nombre = act.titulo.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40) || 'actividad';
+    descargarTexto(`recordatorio-${nombre}.ics`, generarICS(act), 'text/calendar;charset=utf-8');
+    mostrarMensaje(`Recordatorio descargado: ábrelo para agregarlo a tu calendario (avisa 24 h y 1 h antes).`, 'ok', '#mensaje-lista');
   } else if (control.dataset.accion === 'editar') {
     llenarFormActividad(act);
   } else if (control.dataset.accion === 'eliminar') {

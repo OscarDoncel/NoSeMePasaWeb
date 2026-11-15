@@ -36,8 +36,9 @@ Las tres comparten encabezado con menú (la página actual se marca con `aria-cu
 | Datos persistentes (`localStorage`) | ✅ Completa | Se validan al leerlos; si están dañados la app no se rompe |
 | Modo claro / oscuro | ✅ Completa | Recuerda la preferencia y respeta la del sistema |
 | Exportar a CSV | ✅ Completa | Abre bien en Excel (tildes) |
+| Recordatorio de vencimiento | ✅ Completa (por calendario) | Botón ⏰ por actividad: descarga un archivo `.ics` con avisos 24 h y 1 h antes; Google Calendar, Outlook o el celular lo abren y son ellos quienes avisan |
 | Registro e inicio de sesión de usuarios | ⏳ Pendiente | Requiere servidor y base de datos; el sitio es estático |
-| Alertas por correo o notificaciones | ⏳ Pendiente | Requiere servidor; la versión Softr de NoSeMePasa sí las tiene |
+| Correo automático programado | ⏳ Pendiente | Enviar un correo en una fecha futura requiere un servidor; este sitio es estático. El recordatorio por calendario (arriba) cubre la necesidad sin servidor |
 | Sincronizar entre dispositivos | ⏳ Pendiente | `localStorage` guarda solo en el navegador donde se usa |
 | Adjuntar archivos a una actividad | ⏳ Pendiente | Fuera del alcance de un sitio sin servidor |
 
@@ -50,7 +51,7 @@ Cada archivo tiene una sola responsabilidad. Las páginas cargan su script con `
 | `storage.js` | Único lugar que toca `localStorage` | `cargar/guardarFicha`, `cargar/guardarActividades`, `cargar/guardarTema` |
 | `tiempo.js` | Fechas y estado de una actividad | `estadoDe`, `textoRestante`, `formatoFecha`, `vencimiento`, `fechaHoy` |
 | `logica.js` | Reglas de negocio sin DOM | `crearActividad`, `filtrarYOrdenar`, `masUrgentes`, `contarPorEstado`, `nuevoId` |
-| `exportar.js` | Convierte las actividades en texto CSV | `generarCSV` |
+| `exportar.js` | Convierte las actividades en texto CSV y en un evento de calendario | `generarCSV`, `generarICS` |
 | `dom.js` | Utilidades del navegador | `$`, `crear`, `descargarTexto` |
 | `ui.js` | Lo que se ve: tarjeta, lista, diálogo, resumen, formularios, mensajes | `renderActividades`, `renderResumen`, `renderUrgentes`, `confirmarEliminar`, … |
 | `grafica.js` | Gráfica SVG por frente | `renderGrafica` |
@@ -105,7 +106,7 @@ package.json                                 Solo define el comando `npm test`
 Además se comprobó con Lighthouse (Rendimiento, Accesibilidad, Buenas prácticas y SEO en 100 en las 3 páginas) y con axe-core (0 violaciones en modo claro y oscuro). El estado de una actividad siempre se indica también con texto, no solo con color.
 
 ## Pruebas (opcional)
-Con Node.js 18 o superior y sin instalar nada: `npm test`. Son 32 pruebas unitarias de las reglas de fechas, validación, filtros, almacenamiento y CSV. La página no las necesita para funcionar.
+Con Node.js 18 o superior y sin instalar nada: `npm test`. Son 33 pruebas unitarias de las reglas de fechas, validación, filtros, almacenamiento y CSV. La página no las necesita para funcionar.
 
 ## Publicar una actualización (GitHub Pages)
 `git add .` → `git commit -m "mensaje"` → `git push`, y esperar uno o dos minutos. Los cambios de cada versión están en [`CHANGELOG.md`](CHANGELOG.md).
